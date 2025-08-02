@@ -61,28 +61,60 @@
       .formlogin {
         display: grid;
         justify-items: center;
-        background-color: blueviolet;
+        background-color: rgb(40, 42, 45);
         border: 1px solid;
         border-radius: 0.6em;
         padding: 0.5em;
       }
 
+      button {
+        cursor: pointer;
+      }
+
       .formlogin > input {
         width: 100%;
         height: 2em;
+        border: 1px solid rgb(0, 110, 255);
+        border-radius: 7px;
+        outline: none;
+      }
+
+      .formlogin > input:hover {
+        border: 1px solid rgb(59, 140, 246);
+      }
+      .formlogin > input:focus {
+        border: 1px solid rgb(91, 159, 243);
       }
 
       .formlogin > button {
-        background-color: rgb(3, 124, 25);
+        background-color: rgb(15, 121, 34);
         margin: 4px;
         border: 1px solid white;
         border-radius: 0.5em;
         padding: 6px;
       }
 
+      .formlogin > button:hover {
+        background-color: rgb(16, 97, 31);
+      }
+
+      .div-show-users {
+        height: 100%;
+      }
+
       .listusers {
         border: 1px solid;
-        border-radius: 0.6em;
+        border-radius: 0.6em 0 0 0.6em;
+        overflow-y: scroll;
+        max-height: 100%;
+      }
+
+      .btn-logout {
+        background-color: red;
+      }
+
+      .btn-logout:hover {
+        background-color: rgb(195, 1, 1);
       }
 
       .chat {
@@ -98,6 +130,39 @@
         width: 100%;
         height: 100%;
         margin: auto;
+        padding-bottom: 36px;
+      }
+
+      .message {
+        border: 1px solid rgb(16, 68, 28);
+        background-color: rgb(34, 33, 33);
+        border-radius: 0.6em;
+        padding: 5px;
+        max-width: 80%;
+      }
+
+      .in {
+        justify-self: start;
+      }
+
+      .out {
+        justify-self: end;
+      }
+
+      .message > span {
+        font-size: small;
+        font-style: italic;
+      }
+
+      .message > small {
+        font-size: 0.7em;
+        display: block;
+        justify-self: end;
+      }
+
+      .message > p {
+        padding: 0;
+        margin: 0;
       }
 
       .formchat {
@@ -106,15 +171,20 @@
         justify-content: center;
         height: 40px;
         padding: 4px;
-        bottom: 50px;
+        bottom: 40px;
         width: 94%;
       }
 
       .formchat > input {
-        border: 1px solid;
+        border: 1px solid rgb(22, 245, 234);
         width: 80%;
         border-radius: 1.5em;
         padding: 0 0.9em;
+        outline: none;
+      }
+
+      .formchat > input:focus {
+        border: 1px solid rgb(22, 160, 245);
       }
 
       .formchat > button {
@@ -125,20 +195,27 @@
         border-radius: 0.5em;
         overflow: hidden;
       }
+
+      .formchat > button:hover {
+        background-color: rgb(22, 88, 168);
+      }
     </style>
   </head>
   <body>
     <main>
       <div class="principal">
         <section class="users">
-          <form class="formlogin" action="">
-            <input id="name" type="text" placeholder="Name" />
-            <button type="submit">Login</button>
-          </form>
-          <div>
+          <div style="display: block">
+            <form class="formlogin" action="">
+              <input id="name" type="text" placeholder="Name" />
+              <button type="submit">Login</button>
+            </form>
+          </div>
+          <div class="div-show-users" style="display: block">
             <ul class="listusers">
               <li>
-                <span>you (here)</span>
+                <span>you</span>
+                <button class="btn-logout">Logout</button>
               </li>
               <li>
                 <span>pedrito</span>
@@ -146,30 +223,127 @@
               <li>
                 <span>felipe</span>
               </li>
+              <li>
+                <span>carolina</span>
+              </li>
+              <li>
+                <span>carolina</span>
+              </li>
+
+              <li>
+                <span>felipe</span>
+              </li>
+              <li>
+                <span>mary</span>
+              </li>
+              <li>
+                <span>mary</span>
+              </li>
+              <li>
+                <span>felipe</span>
+              </li>
+              <li>
+                <span>felipe</span>
+              </li>
+              <li>
+                <span>felipe</span>
+              </li>
+
+              <li>
+                <span>felipe</span>
+              </li>
+              <li>
+                <span>felipe</span>
+              </li>
+
+              <li>
+                <span>felipe</span>
+              </li>
+              <li>
+                <span>felipe</span>
+              </li>
+
+              <li>
+                <span>Cata</span>
+              </li>
+              <li>
+                <span>Cata</span>
+              </li>
+
+              <li>
+                <span>fede</span>
+              </li>
+
+              <li>
+                <span>felipe</span>
+              </li>
             </ul>
           </div>
         </section>
-        <section class="chat">
+        <section class="chat" style="display: block">
           <ul class="messages">
-            <li>
-              <p>hiiii</p>
-              <small>he</small>
+            <li class="message in">
+              <span>Caris Yek</span>
+              <p>
+                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Amet,
+                laboriosam?
+              </p>
+              <small>15:34</small>
             </li>
-            <li>
+            <li class="message in">
+              <span>Sandra H</span>
               <p>holiw</p>
-              <small>you</small>
+              <small>15:34</small>
             </li>
-            <li>
+            <li class="message out">
+              <span>You</span>
               <p>holiw</p>
-              <small>you</small>
+              <small>15:34</small>
             </li>
-            <li>
+            <li class="message in">
+              <span>Juancho</span>
               <p>holiw</p>
-              <small>you</small>
+              <small>15:23</small>
+            </li>
+            <li class="message in">
+              <span>Juancho</span>
+              <p>holiw</p>
+              <small>15:23</small>
+            </li>
+            <li class="message in">
+              <span>Juancho</span>
+              <p>holiw</p>
+              <small>15:23</small>
+            </li>
+            <li class="message in">
+              <span>Juancho</span>
+              <p>holiw</p>
+              <small>15:23</small>
+            </li>
+            <li class="message in">
+              <span>Juancho</span>
+              <p>holiw</p>
+              <small>15:23</small>
+            </li>
+            <li class="message in">
+              <span>Juancho</span>
+              <p>holiw</p>
+              <small>15:23</small>
+            </li>
+            <li class="message in">
+              <span>Juancho</span>
+              <p>holiw</p>
+              <small>15:23</small>
+            </li>
+
+            <li class="message in">
+              <span>pablito</span>
+              <p>this is the last message</p>
+              <small>14:20</small>
             </li>
           </ul>
           <form class="formchat" action="">
-            <input id="message" type="text" placeholder="Type a message" />
+            <input id="newmessage" type="text" placeholder="Type a message" />
             <button type="submit">Send</button>
           </form>
         </section>
