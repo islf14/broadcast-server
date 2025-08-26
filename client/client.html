@@ -5,12 +5,164 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chat Client</title>
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-      const socket = io()
+    <script type="module">
+      //
+      const $ = (e) => document.querySelector(e)
+
+      const getUsername = () => {
+        const username = localStorage.getItem('user_broadcast')
+        if (username) {
+          return username
+        }
+        modelogin()
+        return null
+      }
+
+      // S O C K E T //
+      const socket = io({
+        auth: {
+          username: getUsername(),
+          countMessages: 0
+        }
+      })
 
       socket.on('connect', () => {
         console.log(socket.id) // ojIckSD2jqNzOqIrAGzL
       })
+
+      socket.on('disconnect', () => {
+        console.log('*** in disconecct')
+      })
+
+      //  A C T I V E  U S E R S
+      socket.on('list-users', (users) => {
+        const ulusers = document.querySelector('#divusers ul')
+        ulusers.innerHTML = ''
+        const li = document.createElement('li')
+        const span = document.createElement('span')
+        const button = document.createElement('button')
+        span.textContent = localStorage.getItem('user_broadcast')
+        button.textContent = 'Logout'
+        button.classList.add('btn-logout')
+        li.appendChild(span)
+        li.appendChild(button)
+        ulusers.appendChild(li)
+
+        button.addEventListener('click', (e) => {
+          e.preventDefault()
+          logout()
+        })
+
+        users.forEach((element) => {
+          if (element.name !== localStorage.getItem('user_broadcast')) {
+            const li = document.createElement('li')
+            const span = document.createElement('span')
+            span.textContent = element.name
+            li.appendChild(span)
+            ulusers.insertAdjacentElement('beforeend', li)
+          }
+        })
+      })
+
+      // functions
+
+      window.onload = function () {
+        verifyLogin()
+      }
+
+      function modelogin() {
+        $('#divlogin').style.display = 'block'
+        $('#divusers').style.display = 'none'
+        $('#chat').style.display = 'none'
+      }
+
+      function modechat() {
+        $('#divlogin').style.display = 'none'
+        $('#divusers').style.display = 'block'
+        $('#chat').style.display = 'block'
+      }
+
+      //
+      function logout() {
+        localStorage.removeItem('user_broadcast')
+        modelogin()
+        socket.emit('logout')
+      }
+
+      document.querySelector('#send').addEventListener('click', (e) => {
+        e.preventDefault()
+        console.log('username on send: ', socket.auth.username)
+        console.log(socket.auth)
+        socket.emit('message', 'holiwi')
+      })
+
+      // verify if user is available in chat
+      function verifyLogin() {
+        const username = localStorage.getItem('user_broadcast')
+        if (username) {
+          fetch('/vlogin', {
+            method: 'POST',
+            headers: {
+              'Content-type': 'application/json'
+            },
+            body: JSON.stringify({ name: username })
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error('Server response was not ok')
+              }
+              // successful verify login
+              modechat()
+            })
+            .catch((error) => {
+              console.log('Error: ', error)
+              logout()
+            })
+        } else {
+          modelogin()
+        }
+      }
+
+      //  L O G I N
+      document.querySelector('#formlogin').addEventListener('submit', (e) => {
+        e.preventDefault()
+        const name = $('#name').value.trim()
+        $('#name').value = name
+        if (name.length < 2 || name.length > 30) {
+          e.target.children[1].innerText = 'invalid name'
+          e.target.children[1].style.color = 'red'
+          return
+        }
+        e.target.children[1].innerText = ''
+        // set in storage because exist emit from server
+        localStorage.setItem('user_broadcast', name)
+        // login in the db
+        fetch('/login', {
+          method: 'POST',
+          headers: {
+            'Content-type': 'application/json'
+          },
+          body: JSON.stringify({ name: name })
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('Server response was not ok')
+            }
+            // successful login
+            socket.auth.username = name
+            socket.emit('login:updateuser', name)
+            $('#name').value = ''
+            modechat()
+          })
+          .catch((error) => {
+            localStorage.removeItem('user_broadcast')
+            e.target.children[1].innerText = 'try another name'
+            e.target.children[1].style.color = 'red'
+            console.log('Error: ', error)
+          })
+      })
+
+      //
     </script>
     <style>
       *,
@@ -77,6 +229,11 @@
         border: 1px solid rgb(0, 110, 255);
         border-radius: 7px;
         outline: none;
+        background-color: rgb(50, 40, 40);
+      }
+
+      .formlogin > input:valid {
+        background-color: rgb(15, 16, 15);
       }
 
       .formlogin > input:hover {
@@ -111,6 +268,7 @@
 
       .btn-logout {
         background-color: red;
+        margin-left: 5px;
       }
 
       .btn-logout:hover {
@@ -205,82 +363,33 @@
     <main>
       <div class="principal">
         <section class="users">
-          <div style="display: block">
-            <form class="formlogin" action="">
-              <input id="name" type="text" placeholder="Name" />
-              <button type="submit">Login</button>
+          <div id="divlogin" style="display: block">
+            <form id="formlogin" class="formlogin" action="">
+              <input
+                id="name"
+                type="text"
+                placeholder="Name"
+                autocomplete="off"
+                minlength="2"
+                maxlength="30"
+              />
+              <span></span>
+              <button type="submit">Enter</button>
             </form>
           </div>
-          <div class="div-show-users" style="display: block">
+          <div id="divusers" class="div-show-users" style="display: none">
             <ul class="listusers">
-              <li>
+              <!-- <li>
                 <span>you</span>
                 <button class="btn-logout">Logout</button>
               </li>
               <li>
-                <span>pedrito</span>
-              </li>
-              <li>
-                <span>felipe</span>
-              </li>
-              <li>
-                <span>carolina</span>
-              </li>
-              <li>
-                <span>carolina</span>
-              </li>
-
-              <li>
-                <span>felipe</span>
-              </li>
-              <li>
-                <span>mary</span>
-              </li>
-              <li>
-                <span>mary</span>
-              </li>
-              <li>
-                <span>felipe</span>
-              </li>
-              <li>
-                <span>felipe</span>
-              </li>
-              <li>
-                <span>felipe</span>
-              </li>
-
-              <li>
-                <span>felipe</span>
-              </li>
-              <li>
-                <span>felipe</span>
-              </li>
-
-              <li>
-                <span>felipe</span>
-              </li>
-              <li>
-                <span>felipe</span>
-              </li>
-
-              <li>
-                <span>Cata</span>
-              </li>
-              <li>
-                <span>Cata</span>
-              </li>
-
-              <li>
-                <span>fede</span>
-              </li>
-
-              <li>
-                <span>felipe</span>
-              </li>
+                <span>Chris</span>
+              </li> -->
             </ul>
           </div>
         </section>
-        <section class="chat" style="display: block">
+        <section id="chat" class="chat" style="display: none">
           <ul class="messages">
             <li class="message in">
               <span>Caris Yek</span>
@@ -343,8 +452,13 @@
             </li>
           </ul>
           <form class="formchat" action="">
-            <input id="newmessage" type="text" placeholder="Type a message" />
-            <button type="submit">Send</button>
+            <input
+              id="newmessage"
+              type="text"
+              placeholder="Type a message"
+              autocomplete="off"
+            />
+            <button id="send" type="submit">Send</button>
           </form>
         </section>
       </div>
