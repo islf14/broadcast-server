@@ -1,9 +1,8 @@
 import { Router } from 'express'
 import { UserController } from '../controllers/user.controller'
-import { Server } from 'socket.io'
 
-export const createUserRouter = ({ io }: { io: Server }) => {
-  const userController = new UserController({ io })
+export const createUserRouter = () => {
+  const userController = new UserController()
 
   const userRouter = Router()
 

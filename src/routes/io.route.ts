@@ -12,24 +12,47 @@ export function createIo(httpServer: httpServer): Server {
   UserController.logoutAll()
 
   io.on('connection', (socket) => {
+    //
     console.log(
       '=> connection: ',
       socket.id + ' ' + socket.handshake.auth.username
     )
 
-    socket.on('disconnect', () => UserController.logout({ socket }))
+    socket.on('disconnect', () => {
+      if (socket.handshake.auth.username !== null) {
+        console.log(
+          'disconnect: ',
+          socket.id + ' ' + socket.handshake.auth.username
+        )
+        UserController.logout({ socket })
+        UserController.emitAllUsers({ socket })
+      }
+    })
 
-    socket.on('logout', () => UserController.logout({ socket }))
+    socket.on('user:logout', () => {
+      console.log(
+        'user:logout: ',
+        socket.id + ' ' + socket.handshake.auth.username
+      )
+      if (socket.handshake.auth.username !== null) {
+        UserController.logout({ socket })
+        UserController.emitAllUsers({ socket })
+        socket.handshake.auth.username = null
+      }
+    })
+
+    socket.on('user:updatename', (name) => {
+      socket.handshake.auth.username = name
+    })
+
+    socket.on('user:getall', () => UserController.getAllUsers({ io }))
 
     socket.on('message', (msg) => {
       console.log(socket.handshake.auth)
       console.log('message from client: ', msg)
       io.emit('return', 'holi return from message')
     })
-
-    socket.on('login:updateuser', (name) => {
-      socket.handshake.auth.username = name
-    })
+    //
   })
 
   return io

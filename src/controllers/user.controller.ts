@@ -23,12 +23,6 @@ function connectUsers() {
 }
 
 export class UserController {
-  private io: Server
-
-  constructor({ io }: { io: Server }) {
-    this.io = io
-  }
-
   ////
 
   login = (req: Request, res: Response) => {
@@ -58,17 +52,6 @@ export class UserController {
       console.log(error)
       return res.status(500).json('error in db')
     }
-
-    //send all users actives
-    const allUsers = db
-      .prepare('SELECT * FROM users WHERE status = 1')
-      .all() as Array<{
-      id: string
-      name: string
-      status: number
-    }>
-    this.io.emit('users', allUsers)
-    //
     return res.status(200).json({ message: 'user legued' })
   }
 
@@ -98,19 +81,6 @@ export class UserController {
         console.log(error)
         return res.status(500).json('error in db')
       }
-
-      //send all users actives
-      const allUsers = db
-        .prepare('SELECT * FROM users WHERE status = 1')
-        .all() as Array<{
-        id: string
-        name: string
-        status: number
-      }>
-      console.log('...server emit')
-      this.io.emit('return', 'holi return from message controller')
-      this.io.emit('users', allUsers)
-      //
       return res.status(200).json({ message: 'valid and available user' })
     } else
       return res.status(400).json({ message: 'user busy or does not exist' })
@@ -138,6 +108,32 @@ export class UserController {
   }
 
   ////
+
+  static emitAllUsers = ({ socket }: { socket: Socket }) => {
+    const db = connectUsers()
+    const allUsers = db
+      .prepare('SELECT * FROM users WHERE status = 1')
+      .all() as Array<{
+      id: string
+      name: string
+      status: number
+    }>
+    console.log('emit all users')
+    socket.broadcast.emit('users', allUsers)
+  }
+
+  static getAllUsers = ({ io }: { io: Server }) => {
+    const db = connectUsers()
+    const allUsers = db
+      .prepare('SELECT * FROM users WHERE status = 1')
+      .all() as Array<{
+      id: string
+      name: string
+      status: number
+    }>
+    console.log('get all users')
+    io.emit('users', allUsers)
+  }
 
   static logout = ({ socket }: { socket: Socket }) => {
     console.log('/logout: ', socket.handshake.auth.username)

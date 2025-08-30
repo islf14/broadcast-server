@@ -29,6 +29,7 @@
 
       socket.on('connect', () => {
         console.log(socket.id) // ojIckSD2jqNzOqIrAGzL
+        verifyLogin()
       })
 
       socket.on('disconnect', () => {
@@ -36,31 +37,40 @@
       })
 
       socket.on('return', (msg) => {
-        console.log('in return: ', msg)
+        console.log('return: ', msg)
       })
+
       //  A C T I V E  U S E R S
       socket.on('users', (users) => {
-        console.log('in listtt xd')
+        const username = localStorage.getItem('user_broadcast')
+        console.log('username is: ', username)
+        if (username === null) {
+          logout()
+          return
+        }
+        // if with username exist
         console.log(users)
         const ulusers = document.querySelector('#divusers ul')
         ulusers.innerHTML = ''
-        const li = document.createElement('li')
-        const span = document.createElement('span')
-        const button = document.createElement('button')
-        span.textContent = localStorage.getItem('user_broadcast')
-        button.textContent = 'Logout'
-        button.classList.add('btn-logout')
-        li.appendChild(span)
-        li.appendChild(button)
-        ulusers.appendChild(li)
 
-        button.addEventListener('click', (e) => {
-          e.preventDefault()
-          logout()
-        })
-
+        let flogout = true
         users.forEach((element) => {
-          if (element.name !== localStorage.getItem('user_broadcast')) {
+          if (element.name === username) {
+            flogout = false
+            const li = document.createElement('li')
+            const span = document.createElement('span')
+            const button = document.createElement('button')
+            span.textContent = username
+            button.textContent = 'Logout'
+            button.classList.add('btn-logout')
+            li.appendChild(span)
+            li.appendChild(button)
+            ulusers.insertAdjacentElement('afterbegin', li)
+            button.addEventListener('click', (e) => {
+              e.preventDefault()
+              logout()
+            })
+          } else {
             const li = document.createElement('li')
             const span = document.createElement('span')
             span.textContent = element.name
@@ -68,13 +78,13 @@
             ulusers.insertAdjacentElement('beforeend', li)
           }
         })
+        if (flogout) {
+          console.log('..logout, not found')
+          logout()
+        }
       })
 
-      // functions
-
-      window.onload = function () {
-        verifyLogin()
-      }
+      // FUNCTIONS
 
       function modelogin() {
         $('#divlogin').style.display = 'block'
@@ -92,7 +102,7 @@
       function logout() {
         localStorage.removeItem('user_broadcast')
         modelogin()
-        socket.emit('logout')
+        socket.emit('user:logout')
       }
 
       document.querySelector('#send').addEventListener('click', (e) => {
@@ -102,7 +112,7 @@
         socket.emit('message', 'holiwi')
       })
 
-      // verify if user is available in chat
+      // V E R I F Y  L O G I N
       function verifyLogin() {
         const username = localStorage.getItem('user_broadcast')
         if (username) {
@@ -118,6 +128,7 @@
                 throw new Error('Server response error verifying login')
               }
               // successful verify login
+              socket.emit('user:getall')
               modechat()
             })
             .catch((error) => {
@@ -156,7 +167,8 @@
             }
             // successful login
             socket.auth.username = name
-            socket.emit('login:updateuser', name)
+            socket.emit('user:updatename', name)
+            socket.emit('user:getall')
             $('#name').value = ''
             modechat()
           })

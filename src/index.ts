@@ -9,13 +9,13 @@ const app = express()
 app.use(json())
 
 const httpServer = createServer(app)
-const io = createIo(httpServer)
+createIo(httpServer)
 
 app.get('/', (_req, res) => {
   res.sendFile(process.cwd() + '/client/client.html')
 })
 
-app.use('/', createUserRouter({ io }))
+app.use('/', createUserRouter())
 
 httpServer.listen(port, () => {
   console.log(`listening on http://localhost:${port}`)
