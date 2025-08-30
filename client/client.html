@@ -11,6 +11,7 @@
 
       const getUsername = () => {
         const username = localStorage.getItem('user_broadcast')
+        console.log('getting name: ', username)
         if (username) {
           return username
         }
@@ -34,8 +35,13 @@
         console.log('*** in disconecct')
       })
 
+      socket.on('return', (msg) => {
+        console.log('in return: ', msg)
+      })
       //  A C T I V E  U S E R S
-      socket.on('list-users', (users) => {
+      socket.on('users', (users) => {
+        console.log('in listtt xd')
+        console.log(users)
         const ulusers = document.querySelector('#divusers ul')
         ulusers.innerHTML = ''
         const li = document.createElement('li')
@@ -109,7 +115,7 @@
           })
             .then((response) => {
               if (!response.ok) {
-                throw new Error('Server response was not ok')
+                throw new Error('Server response error verifying login')
               }
               // successful verify login
               modechat()
@@ -146,7 +152,7 @@
         })
           .then((response) => {
             if (!response.ok) {
-              throw new Error('Server response was not ok')
+              throw new Error('Server response error in login')
             }
             // successful login
             socket.auth.username = name
