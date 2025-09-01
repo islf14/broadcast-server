@@ -18,14 +18,24 @@ export function createIo(httpServer: httpServer): Server {
       socket.id + ' ' + socket.handshake.auth.username
     )
 
+    //login
+    socket.on('user:login', (name) => {
+      UserController.login({ io, socket, name })
+    })
+
+    // verify login
+    socket.on('user:vflogin', (name) => {
+      UserController.vlogin({ io, socket, name })
+    })
+
     socket.on('disconnect', () => {
+      console.log(
+        'disconnect: ',
+        socket.id + ' ' + socket.handshake.auth.username
+      )
       if (socket.handshake.auth.username !== null) {
-        console.log(
-          'disconnect: ',
-          socket.id + ' ' + socket.handshake.auth.username
-        )
         UserController.logout({ socket })
-        UserController.emitAllUsers({ socket })
+        UserController.dissEmitUsers({ socket })
       }
     })
 
@@ -36,16 +46,16 @@ export function createIo(httpServer: httpServer): Server {
       )
       if (socket.handshake.auth.username !== null) {
         UserController.logout({ socket })
-        UserController.emitAllUsers({ socket })
+        UserController.logoutEmitUsers({ socket })
         socket.handshake.auth.username = null
       }
     })
 
-    socket.on('user:updatename', (name) => {
-      socket.handshake.auth.username = name
-    })
+    // socket.on('user:updatename', (name) => {
+    //   socket.handshake.auth.username = name
+    // })
 
-    socket.on('user:getall', () => UserController.getAllUsers({ io }))
+    // socket.on('user:getall', () => UserController.getAllUsers({ io }))
 
     socket.on('message', (msg) => {
       console.log(socket.handshake.auth)
