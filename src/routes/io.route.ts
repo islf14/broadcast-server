@@ -35,7 +35,7 @@ export function createIo(httpServer: httpServer): Server {
       )
       if (socket.handshake.auth.username !== null) {
         UserController.logout({ socket })
-        UserController.dissEmitUsers({ socket })
+        UserController.disconnectEmitUsers({ socket })
       }
     })
 
