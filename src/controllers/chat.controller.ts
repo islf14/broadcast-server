@@ -23,6 +23,8 @@ function connectChats() {
 }
 
 export class ChatController {
+  //
+
   static create = () => {
     let db
     try {
@@ -33,17 +35,17 @@ export class ChatController {
       throw new Error('Error connecting: ' + message)
     }
 
+    let idChat = uuidv4()
     try {
       db.prepare(
         'INSERT INTO chats (id, status, createdAt, updatedAt) VALUES (?, ?, ?, ?)'
-      ).get(uuidv4(), 1, new Date().toISOString(), new Date().toISOString())
+      ).get(idChat, 1, new Date().toISOString(), new Date().toISOString())
     } catch (e: unknown) {
       let message
       if (e instanceof Error) message = e.message
       throw new Error('Error newChat: ' + message)
     }
-    const chats = db.prepare('SELECT * FROM chats').all()
-    return chats
+    return idChat
   }
 
   static closeChat = () => {
@@ -66,5 +68,25 @@ export class ChatController {
       if (e instanceof Error) message = e.message
       throw new Error('Error closing chat: ' + message)
     }
+  }
+
+  static activeChat = (): string => {
+    let db
+    try {
+      db = connectChats()
+    } catch (e: unknown) {
+      let message
+      if (e instanceof Error) message = e.message
+      throw new Error('Error connecting: ' + message)
+    }
+
+    let id: string = ''
+    const chat = db.prepare('SELECT * FROM chats WHERE status = ?').get(1) as {
+      id: string
+    }
+    if (chat) {
+      id = chat.id
+    }
+    return id
   }
 }

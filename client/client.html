@@ -37,7 +37,7 @@
       })
 
       socket.on('return', (msg) => {
-        console.log('return: ', msg)
+        console.log('message: ', msg)
       })
 
       socket.on('server:vfloginok', () => {
@@ -135,6 +135,13 @@
         socket.emit('user:login', name)
       })
 
+      document.querySelector('#formchat').addEventListener('submit', (e) => {
+        e.preventDefault()
+        const message = e.target.children[0].value
+        e.target.children[0].value = ''
+        socket.emit('user:message', message)
+      })
+
       function logout() {
         localStorage.removeItem('user_broadcast')
         socket.emit('user:logout')
@@ -152,13 +159,6 @@
         $('#divusers').style.display = 'block'
         $('#chat').style.display = 'block'
       }
-
-      document.querySelector('#send').addEventListener('click', (e) => {
-        e.preventDefault()
-        console.log('username on send: ', socket.auth.username)
-        console.log(socket.auth)
-        socket.emit('message', 'holiwi')
-      })
 
       //
     </script>
@@ -450,14 +450,14 @@
               <small>14:20</small>
             </li>
           </ul>
-          <form class="formchat" action="">
+          <form id="formchat" class="formchat" action="">
             <input
               id="newmessage"
               type="text"
               placeholder="Type a message"
               autocomplete="off"
             />
-            <button id="send" type="submit">Send</button>
+            <button type="submit">Send</button>
           </form>
         </section>
       </div>

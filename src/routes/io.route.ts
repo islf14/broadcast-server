@@ -1,15 +1,30 @@
 import { Server } from 'socket.io'
 import { Server as httpServer } from 'node:http'
 import { UserController } from '../controllers/user.controller'
+import { MessageController } from '../controllers/message.controller'
+import { ChatController } from '../controllers/chat.controller'
 
 export function createIo(httpServer: httpServer): Server {
+  //
   // S O C K E T
+  console.log('::: Creating io...')
   const io = new Server(httpServer, {
     /* options */
   })
 
-  console.log('::: Creating io...')
   UserController.logoutAll()
+  let idChat: string = ''
+
+  try {
+    const id = ChatController.activeChat()
+    if (id !== '') {
+      idChat = id
+    }
+  } catch (e: unknown) {
+    let message
+    if (e instanceof Error) message = e.message
+    console.log('Error: ', message)
+  }
 
   io.on('connection', (socket) => {
     //
@@ -20,7 +35,16 @@ export function createIo(httpServer: httpServer): Server {
 
     //login
     socket.on('user:login', (name) => {
-      UserController.login({ io, socket, name })
+      try {
+        const id = UserController.login({ io, socket, name }) as string
+        if (id !== '') {
+          idChat = id
+        }
+      } catch (e: unknown) {
+        let message
+        if (e instanceof Error) message = e.message
+        console.log('Error: ', message)
+      }
     })
 
     // verify login
@@ -28,14 +52,23 @@ export function createIo(httpServer: httpServer): Server {
       UserController.vlogin({ io, socket, name })
     })
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async () => {
       console.log(
         'disconnect: ',
         socket.id + ' ' + socket.handshake.auth.username
       )
-      if (socket.handshake.auth.username !== null) {
+      if (socket.handshake.auth.username !== null && idChat !== '') {
         UserController.logout({ socket })
-        UserController.disconnectEmitUsers({ socket })
+        try {
+          const endChat = await UserController.disconnectEmitUsers({ socket })
+          if (endChat) {
+            idChat = ''
+          }
+        } catch (e: unknown) {
+          let message
+          if (e instanceof Error) message = e.message
+          console.log('Error: ', message)
+        }
       }
     })
 
@@ -44,23 +77,30 @@ export function createIo(httpServer: httpServer): Server {
         'user:logout: ',
         socket.id + ' ' + socket.handshake.auth.username
       )
-      if (socket.handshake.auth.username !== null) {
+
+      if (socket.handshake.auth.username !== null && idChat !== '') {
         UserController.logout({ socket })
-        UserController.logoutEmitUsers({ socket })
+        try {
+          const endChat = UserController.logoutEmitUsers({ socket })
+          if (endChat) {
+            idChat = ''
+          }
+        } catch (e: unknown) {
+          let message
+          if (e instanceof Error) message = e.message
+          console.log('Error: ', message)
+        }
         socket.handshake.auth.username = null
       }
     })
 
-    // socket.on('user:updatename', (name) => {
-    //   socket.handshake.auth.username = name
-    // })
-
-    // socket.on('user:getall', () => UserController.getAllUsers({ io }))
-
-    socket.on('message', (msg) => {
-      console.log(socket.handshake.auth)
-      console.log('message from client: ', msg)
-      io.emit('return', 'holi return from message')
+    socket.on('user:message', (msg) => {
+      if (socket.handshake.auth.username !== null) {
+        console.log(socket.handshake.auth)
+        console.log('message from client: ', msg)
+        MessageController.create({ socket, msg, idChat })
+        // io.emit('return', msg)
+      }
     })
     //
   })
