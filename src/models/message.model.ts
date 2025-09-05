@@ -1,6 +1,5 @@
 import Database from 'libsql'
-import { Server, Socket } from 'socket.io'
-import { MessageModel } from '../models/message.model'
+import { v4 as uuidv4 } from 'uuid'
 
 function connectMessages() {
   const db = new Database('./data.db')
@@ -23,18 +22,16 @@ function connectMessages() {
   }
 }
 
-export class MessageController {
+export class MessageModel {
   //
 
   static create = ({
-    io,
-    socket,
-    msg,
+    message,
+    username,
     idChat
   }: {
-    io: Server
-    socket: Socket
-    msg: string
+    message: string
+    username: string
     idChat: string
   }) => {
     let db
@@ -43,26 +40,26 @@ export class MessageController {
     } catch (e: unknown) {
       let message
       if (e instanceof Error) message = e.message
-      throw new Error('Error connecting: ' + message)
+      throw new Error('can not connect: ' + message)
     }
 
-    let newMessage
     try {
-      newMessage = MessageModel.create({
-        message: msg,
-        username: socket.handshake.auth.username,
-        idChat
-      })
+      const id = uuidv4()
+      db.prepare(
+        'INSERT INTO messages (id, message, username, chat_id, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)'
+      ).get(
+        id,
+        message,
+        username,
+        idChat,
+        new Date().toISOString(),
+        new Date().toISOString()
+      )
+      return db.prepare('SELECT * FROM messages WHERE id = ?').get(id)
     } catch (e: unknown) {
       let message
       if (e instanceof Error) message = e.message
-      console.log('Error: ', message)
+      throw new Error('can not insert: ' + message)
     }
-    console.log(newMessage)
-    io.emit('server:message', msg)
-    // const messages = db.prepare('SELECT * FROM messages').all()
-    // console.log(messages)
   }
-
-  //
 }

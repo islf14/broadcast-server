@@ -35,14 +35,11 @@ export class UserModel {
       throw new Error('can not connect: ' + message)
     }
 
-    const activeUsers = db
-      .prepare('SELECT * FROM users WHERE status = ?')
-      .all(1) as Array<{
+    return db.prepare('SELECT * FROM users WHERE status = ?').all(1) as Array<{
       id: string
       name: string
       status: number
     }>
-    return activeUsers
   }
 
   //
@@ -57,12 +54,11 @@ export class UserModel {
       throw new Error('can not connect: ' + message)
     }
 
-    const allUsers = db.prepare('SELECT * FROM users').all() as Array<{
+    return db.prepare('SELECT * FROM users').all() as Array<{
       id: string
       name: string
       status: number
     }>
-    return allUsers
   }
 
   //
@@ -77,13 +73,12 @@ export class UserModel {
       throw new Error('can not connect: ' + message)
     }
 
-    const id = uuidv4()
     try {
+      const id = uuidv4()
       db.prepare(
         'INSERT INTO users (id, name, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)'
       ).get(id, name, 1, new Date().toISOString(), new Date().toISOString())
-      const user = db.prepare('SELECT * FROM users WHERE id = ?').get(id)
-      return user
+      return db.prepare('SELECT * FROM users WHERE id = ?').get(id)
     } catch (e: unknown) {
       let message
       if (e instanceof Error) message = e.message
@@ -103,12 +98,11 @@ export class UserModel {
       throw new Error('can not connect: ' + message)
     }
 
-    const user = db.prepare('SELECT * FROM users WHERE name = ?').get(name) as {
+    return db.prepare('SELECT * FROM users WHERE name = ?').get(name) as {
       id: string
       name: string
       status: number
     }
-    return user
   }
 
   //
@@ -129,14 +123,13 @@ export class UserModel {
       throw new Error('can not connect: ' + message)
     }
 
-    const user = db
+    return db
       .prepare('SELECT * FROM users WHERE name = ? AND status = ?')
       .get(name, status) as {
       id: string
       name: string
       status: number
     }
-    return user
   }
 
   //

@@ -82,10 +82,10 @@ export class UserController {
       // verify login ok
       try {
         UserModel.updateStatus({ id: user.id, status: 1 })
-        console.log('notify connect?')
         const allUsers = UserModel.allActiveUsers()
         socket.emit('server:vlogin_active_users', allUsers)
         if (type !== 1) {
+          console.log('notify connect')
           socket.broadcast.emit('server:user_connected', user)
         }
       } catch (e: unknown) {
@@ -103,7 +103,7 @@ export class UserController {
   //
   // A L L  U S E R S
 
-  static logoutEmitUsers = ({ socket }: { socket: Socket }): boolean => {
+  static disNotify = ({ socket }: { socket: Socket }): boolean => {
     //
     const user = UserModel.findByName({ name: socket.handshake.auth.username })
     const activeUsers = UserModel.allActiveUsers()
@@ -129,7 +129,7 @@ export class UserController {
 
   //
 
-  static disconnectEmitUsers = async ({
+  static disReaload = async ({
     socket
   }: {
     socket: Socket
@@ -141,30 +141,10 @@ export class UserController {
           name: socket.handshake.auth.username
         })
         if (user && user.status === 0) {
-          // Emit because disconnection
-          const activeUsers = UserModel.allActiveUsers()
-
-          // finish chat?
-          if (activeUsers.length === 0) {
-            try {
-              ChatController.closeChat()
-              UserController.deleteAll()
-              console.log('Chat closed')
-              resolve(true)
-            } catch (e: unknown) {
-              let message
-              if (e instanceof Error) message = e.message
-              throw new Error('unable to close chat: ' + message)
-            }
-          } else {
-            console.log('notify disconnection')
-            socket.broadcast.emit('server:user_disconnected', user)
-            resolve(false)
-          }
-
-          //
+          // Notify disconnection or close chat
+          resolve(UserController.disNotify({ socket }))
         } else {
-          console.log('...page realoaded')
+          console.log('...realoaded')
           resolve(false)
         }
       }, 1000)

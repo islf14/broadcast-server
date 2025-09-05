@@ -29,13 +29,15 @@
       socket.on('connect', () => {
         console.log(socket.id)
         console.log('username: ', socket.auth.username)
-        // verifyLogin()
         const username = localStorage.getItem('user_broadcast')
         if (username) {
           socket.emit('user:vflogin', window.performance.navigation.type)
         } else {
           modelogin()
-          socket.emit('user:logout')
+          if (socket.auth.username) {
+            socket.auth.username = null
+            socket.emit('user:clean')
+          }
         }
       })
 
@@ -43,7 +45,7 @@
         console.log('*** in disconecct')
       })
 
-      socket.on('return', (msg) => {
+      socket.on('server:message', (msg) => {
         console.log('message: ', msg)
       })
 
