@@ -11,11 +11,9 @@
 
       const getUsername = () => {
         const username = localStorage.getItem('user_broadcast')
-        console.log('getting name: ', username)
         if (username) {
           return username
         }
-        modelogin()
         return null
       }
 
@@ -27,9 +25,18 @@
         }
       })
 
+      // V E R I F Y  L O G I N
       socket.on('connect', () => {
         console.log(socket.id)
-        verifyLogin()
+        console.log('username: ', socket.auth.username)
+        // verifyLogin()
+        const username = localStorage.getItem('user_broadcast')
+        if (username) {
+          socket.emit('user:vflogin', window.performance.navigation.type)
+        } else {
+          modelogin()
+          socket.emit('user:logout')
+        }
       })
 
       socket.on('disconnect', () => {
@@ -40,85 +47,95 @@
         console.log('message: ', msg)
       })
 
-      socket.on('server:vfloginok', () => {
+      socket.on('server:vlogin_active_users', (users) => {
         modechat()
+        listUsers(users)
       })
 
-      socket.on('server:errorvflogin', () => {
-        console.log('error vf login')
-        logout()
-      })
-
-      socket.on('server:loginok', () => {
+      socket.on('server:login_active_users', (users) => {
         socket.auth.username = localStorage.getItem('user_broadcast')
         $('#name').value = ''
         modechat()
+        listUsers(users)
       })
 
-      socket.on('server:errorlogin', () => {
+      function listUsers(users) {
+        console.log('list users')
+        console.log(users)
+        const username = localStorage.getItem('user_broadcast')
+        const ulusers = document.querySelector('#divusers ul')
+        ulusers.innerHTML = ''
+
+        users.forEach((element) => {
+          if (element.name === username) {
+            const li = document.createElement('li')
+            const span = document.createElement('span')
+            const button = document.createElement('button')
+            span.textContent = username
+            button.textContent = 'Logout'
+            button.classList.add('btn-logout')
+            li.appendChild(span)
+            li.appendChild(button)
+            ulusers.insertAdjacentElement('afterbegin', li)
+            button.addEventListener('click', (e) => {
+              e.preventDefault()
+              logout()
+            })
+          } else {
+            const li = document.createElement('li')
+            const span = document.createElement('span')
+            span.textContent = element.name
+            li.appendChild(span)
+            ulusers.insertAdjacentElement('beforeend', li)
+          }
+        })
+      }
+
+      socket.on('server:user_connected', (user) => {
+        console.log('...user connected')
+        const ulusers = document.querySelector('#divusers ul')
+        const liUsers = document.querySelectorAll('#divusers ul li')
+
+        let add = true
+        liUsers.forEach((item) => {
+          if (item.children[0].textContent === user.name) {
+            add = false
+          }
+        })
+
+        if (add) {
+          const li = document.createElement('li')
+          const span = document.createElement('span')
+          span.textContent = user.name
+          li.appendChild(span)
+          ulusers.insertAdjacentElement('beforeend', li)
+        }
+      })
+
+      socket.on('server:user_disconnected', (user) => {
+        console.log('...user disconnect')
+        const ulusers = document.querySelector('#divusers ul')
+        const liUsers = document.querySelectorAll('#divusers ul li')
+        liUsers.forEach((item) => {
+          if (item.children[0].textContent === user.name) {
+            ulusers.removeChild(item)
+          }
+        })
+      })
+
+      socket.on('server:vlogin_error', () => {
+        console.log('error vf login')
+        localStorage.removeItem('user_broadcast')
+        modelogin()
+      })
+
+      socket.on('server:login_error', () => {
         console.log('error login')
         localStorage.removeItem('user_broadcast')
         const sp = document.querySelector('#formlogin span')
         sp.innerText = 'try another name'
         sp.style.color = 'red'
       })
-
-      //  A C T I V E  U S E R S
-      socket.on('server:users', (users) => {
-        const username = localStorage.getItem('user_broadcast')
-        console.log('username is: ', username)
-        if (username !== null) {
-          console.log(users)
-          const ulusers = document.querySelector('#divusers ul')
-          ulusers.innerHTML = ''
-
-          let flogout = true
-          users.forEach((element) => {
-            if (element.name === username) {
-              flogout = false
-              const li = document.createElement('li')
-              const span = document.createElement('span')
-              const button = document.createElement('button')
-              span.textContent = username
-              button.textContent = 'Logout'
-              button.classList.add('btn-logout')
-              li.appendChild(span)
-              li.appendChild(button)
-              ulusers.insertAdjacentElement('afterbegin', li)
-              button.addEventListener('click', (e) => {
-                e.preventDefault()
-                logout()
-              })
-            } else {
-              const li = document.createElement('li')
-              const span = document.createElement('span')
-              span.textContent = element.name
-              li.appendChild(span)
-              ulusers.insertAdjacentElement('beforeend', li)
-            }
-          })
-          if (flogout) {
-            console.log('..logout, not found')
-            logout()
-          }
-        } else {
-          socket.emit('user:logout')
-          modelogin()
-        }
-      })
-
-      // FUNCTIONS
-
-      // V E R I F Y  L O G I N
-      function verifyLogin() {
-        const username = localStorage.getItem('user_broadcast')
-        if (username) {
-          socket.emit('user:vflogin', username)
-        } else {
-          modelogin()
-          socket.emit('user:logout')
-        }
-      }
 
       //  L O G I N
       document.querySelector('#formlogin').addEventListener('submit', (e) => {

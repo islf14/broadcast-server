@@ -34,9 +34,10 @@ export function createIo(httpServer: httpServer): Server {
     )
 
     //login
+
     socket.on('user:login', (name) => {
       try {
-        const id = UserController.login({ io, socket, name }) as string
+        const id = UserController.login({ socket, name }) as string
         if (id !== '') {
           idChat = id
         }
@@ -48,13 +49,16 @@ export function createIo(httpServer: httpServer): Server {
     })
 
     // verify login
-    socket.on('user:vflogin', (name) => {
-      UserController.vlogin({ io, socket, name })
+
+    socket.on('user:vflogin', (type) => {
+      UserController.vlogin({ socket, type })
     })
+
+    //
 
     socket.on('disconnect', async () => {
       console.log(
-        'disconnect: ',
+        '=> disconnect: ',
         socket.id + ' ' + socket.handshake.auth.username
       )
       if (socket.handshake.auth.username !== null && idChat !== '') {
@@ -72,9 +76,11 @@ export function createIo(httpServer: httpServer): Server {
       }
     })
 
+    //
+
     socket.on('user:logout', () => {
       console.log(
-        'user:logout: ',
+        '=> user:logout: ',
         socket.id + ' ' + socket.handshake.auth.username
       )
 
@@ -94,14 +100,16 @@ export function createIo(httpServer: httpServer): Server {
       }
     })
 
+    //
+
     socket.on('user:message', (msg) => {
       if (socket.handshake.auth.username !== null) {
         console.log(socket.handshake.auth)
         console.log('message from client: ', msg)
         MessageController.create({ socket, msg, idChat })
-        // io.emit('return', msg)
       }
     })
+
     //
   })
 

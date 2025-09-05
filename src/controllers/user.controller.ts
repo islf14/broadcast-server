@@ -1,36 +1,13 @@
 import { Request, Response } from 'express'
-import { v4 as uuidv4 } from 'uuid'
-import { Server, Socket } from 'socket.io'
-import Database from 'libsql'
+import { Socket } from 'socket.io'
 import { ChatController } from './chat.controller'
-
-function connectUsers() {
-  const db = new Database('./data.db')
-  try {
-    const tb = db
-      .prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
-      )
-      .get()
-    if (tb === undefined) {
-      db.exec(
-        'CREATE TABLE users (id BLOB PRIMARY KEY, name TEXT, status NUMERIC, createdAt TEXT, updatedAt TEXT)'
-      )
-    }
-    return db
-  } catch (e) {
-    let message
-    if (e instanceof Error) message = e.message
-    throw new Error('error db: ' + message)
-  }
-}
+import { UserModel } from '../models/user.model'
 
 export class UserController {
   ////
 
   users = (_req: Request, res: Response) => {
-    const db = connectUsers()
-    const row = db.prepare('SELECT * FROM users').all()
+    const row = UserModel.allUsers()
     console.log(row)
     return res.status(200).json(row)
   }
@@ -39,188 +16,118 @@ export class UserController {
   //
 
   static login = ({
-    io,
     socket,
     name
   }: {
-    io: Server
     socket: Socket
     name: string
   }): string => {
     console.log('/login name:', name)
-    let db
-    try {
-      db = connectUsers()
-    } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      // console.log('Error: ', message)
-      socket.emit('server:errorlogin')
-      throw new Error('can not connect: ' + message)
-    }
-    const user = db.prepare('SELECT * FROM users WHERE name = ?').get(name)
-    if (user) {
-      socket.emit('server:errorlogin')
+
+    const exist = UserModel.findByName({ name })
+    if (exist) {
+      socket.emit('server:login_error')
       throw new Error('User already exists')
     }
 
     // New User
+    let user
     try {
-      db.prepare(
-        'INSERT INTO users (id, name, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)'
-      ).get(
-        uuidv4(),
-        name,
-        1,
-        new Date().toISOString(),
-        new Date().toISOString()
-      )
+      user = UserModel.create({ name })
     } catch (e: unknown) {
       let message
       if (e instanceof Error) message = e.message
-      // console.log('Error', message)
-      socket.emit('server:errorlogin')
-      throw new Error('can not insert: ' + message)
+      socket.emit('server:login_error')
+      throw new Error(message)
     }
 
     // New Chat
-    const allusers = db.prepare('SELECT * FROM users').all() as Array<{
-      id: string
-      name: string
-      status: number
-    }>
+    const allUsers = UserModel.allUsers()
     let idChat: string = ''
-    if (allusers.length === 1) {
+    if (allUsers.length === 1) {
       try {
         idChat = ChatController.create()
         console.log('chat created')
       } catch (e: unknown) {
         let message
         if (e instanceof Error) message = e.message
-        // console.log('Error!!!: ', message)
-        // delete user
-        db.prepare('DELETE FROM users WHERE id = ?').get(allusers[0].id)
-        socket.emit('server:errorlogin')
+        // delete user on error new chat
+        UserModel.delete({ id: allUsers[0].id })
+        socket.emit('server:login_error')
         throw new Error('can not create chat: ' + message)
       }
     }
 
     // login ok
     socket.handshake.auth.username = name
-    socket.emit('server:loginok')
-    UserController.emitUsersEveryone({ io })
+    const activeUsers = UserModel.allActiveUsers()
+    console.log('notify connect')
+    socket.emit('server:login_active_users', activeUsers)
+    socket.broadcast.emit('server:user_connected', user)
     return idChat
   }
 
   //
   //
 
-  static vlogin = ({
-    io,
-    socket,
-    name
-  }: {
-    io: Server
-    socket: Socket
-    name: string
-  }) => {
-    console.log('/vlogin name: ', name)
-    let db
-    try {
-      db = connectUsers()
-    } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      console.log('Error: ', message)
-      socket.emit('server:errorvflogin')
-      return
-    }
-    const user = db
-      .prepare('SELECT * FROM users WHERE name = ? AND status = ?')
-      .get(name, 0) as {
-      id: string
-      name: string
-      status: number
-    }
+  static vlogin = ({ socket, type }: { socket: Socket; type: number }) => {
+    console.log('/vlogin name: ', socket.handshake.auth.username)
+
+    const user = UserModel.findByNameStatus({
+      name: socket.handshake.auth.username,
+      status: 0
+    })
+    //verify that only exist
     if (user) {
-      // login ok
+      // verify login ok
       try {
-        db.prepare(
-          'UPDATE users SET status = ?, updatedAt = ? WHERE id = ?'
-        ).get(1, new Date().toISOString(), user.id)
-        socket.emit('server:vfloginok')
-        UserController.emitUsersEveryone({ io })
+        UserModel.updateStatus({ id: user.id, status: 1 })
+        console.log('notify connect?')
+        const allUsers = UserModel.allActiveUsers()
+        socket.emit('server:vlogin_active_users', allUsers)
+        if (type !== 1) {
+          socket.broadcast.emit('server:user_connected', user)
+        }
       } catch (e: unknown) {
         let message
         if (e instanceof Error) message = e.message
         console.log('Error: ', message)
-        socket.emit('server:errorvflogin')
+        socket.emit('server:vlogin_error')
       }
-    } else socket.emit('server:errorvflogin')
+    } else {
+      socket.handshake.auth.username = null
+      socket.emit('server:vlogin_error')
+    }
   }
 
   //
   // A L L  U S E R S
 
-  static emitUsersEveryone = ({ io }: { io: Server }) => {
-    let db
-    try {
-      db = connectUsers()
-    } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      console.log('Error: ', message)
-      return
-    }
-    const allUsers = db
-      .prepare('SELECT * FROM users WHERE status = 1')
-      .all() as Array<{
-      id: string
-      name: string
-      status: number
-    }>
-    console.log('Emit to Everyone')
-    io.emit('server:users', allUsers)
-  }
-
   static logoutEmitUsers = ({ socket }: { socket: Socket }): boolean => {
-    let db
-    try {
-      db = connectUsers()
-    } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not connect: ' + message)
-    }
+    //
+    const user = UserModel.findByName({ name: socket.handshake.auth.username })
+    const activeUsers = UserModel.allActiveUsers()
 
-    const allUsers = db
-      .prepare('SELECT * FROM users WHERE status = ?')
-      .all(1) as Array<{
-      id: string
-      name: string
-      status: number
-    }>
-
-    // finish chat
-    let endChat = false
-    if (allUsers.length === 0) {
-      // Last user
+    // finish chat?
+    if (activeUsers.length === 0) {
       try {
         ChatController.closeChat()
-        endChat = true
         UserController.deleteAll()
         console.log('Chat closed')
+        return true
       } catch (e: unknown) {
         let message
         if (e instanceof Error) message = e.message
-        console.log('Error: ', message)
+        throw new Error('unable to close chat: ' + message)
       }
     } else {
-      console.log('Emit broadcast')
-      socket.broadcast.emit('server:users', allUsers)
+      console.log('notify disconnection')
+      socket.broadcast.emit('server:user_disconnected', user)
+      return false
     }
-    return endChat
   }
+
+  //
 
   static disconnectEmitUsers = async ({
     socket
@@ -229,28 +136,38 @@ export class UserController {
   }): Promise<boolean> => {
     const status = await new Promise<boolean>((resolve) => {
       setTimeout(() => {
-        let db
-        try {
-          db = connectUsers()
-        } catch (e: unknown) {
-          let message
-          if (e instanceof Error) message = e.message
-          console.log('Error: ', message)
-          throw new Error('can not connect: ' + message)
-        }
-
         // verify status
-        const user = db
-          .prepare('SELECT * FROM users WHERE name = ?')
-          .get(socket.handshake.auth.username) as { status: number }
-
-        let endChat = false
+        const user = UserModel.findByName({
+          name: socket.handshake.auth.username
+        })
         if (user && user.status === 0) {
           // Emit because disconnection
-          endChat = UserController.logoutEmitUsers({ socket })
-        } else console.log('...page realoaded')
-        resolve(endChat)
-      }, 2000)
+          const activeUsers = UserModel.allActiveUsers()
+
+          // finish chat?
+          if (activeUsers.length === 0) {
+            try {
+              ChatController.closeChat()
+              UserController.deleteAll()
+              console.log('Chat closed')
+              resolve(true)
+            } catch (e: unknown) {
+              let message
+              if (e instanceof Error) message = e.message
+              throw new Error('unable to close chat: ' + message)
+            }
+          } else {
+            console.log('notify disconnection')
+            socket.broadcast.emit('server:user_disconnected', user)
+            resolve(false)
+          }
+
+          //
+        } else {
+          console.log('...page realoaded')
+          resolve(false)
+        }
+      }, 1000)
     })
     return status
   }
@@ -259,20 +176,12 @@ export class UserController {
 
   static logout = ({ socket }: { socket: Socket }) => {
     console.log('/logout: ', socket.handshake.auth.username)
-    let db
-    try {
-      db = connectUsers()
-    } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      console.log('Error: ', message)
-      return
-    }
 
     try {
-      db.prepare(
-        'UPDATE users SET status = ?, updatedAt = ? WHERE name = ?'
-      ).get(0, new Date().toISOString(), socket.handshake.auth.username)
+      UserModel.updateStatusByName({
+        name: socket.handshake.auth.username,
+        status: 0
+      })
     } catch (e: unknown) {
       let message
       if (e instanceof Error) message = e.message
@@ -280,43 +189,19 @@ export class UserController {
     }
   }
 
-  static logoutAll = () => {
-    let db
-    try {
-      db = connectUsers()
-    } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      console.log('Error: ', message)
-      return
-    }
+  //
 
-    const allUsers = db
-      .prepare('SELECT * FROM users WHERE status = 1')
-      .all() as Array<{
-      id: string
-    }>
-    allUsers.forEach((user) => {
-      db.prepare('UPDATE users SET status = ?, updatedAt = ? WHERE id = ?').get(
-        0,
-        new Date().toISOString(),
-        user.id
-      )
+  static logoutAll = () => {
+    const activeUsers = UserModel.allActiveUsers()
+    activeUsers.forEach((user) => {
+      UserModel.updateStatus({ id: user.id, status: 0 })
     })
   }
 
-  static deleteAll = () => {
-    let db
-    try {
-      db = connectUsers()
-    } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      console.log('Error: ', message)
-      return
-    }
+  //
 
-    db.exec('DELETE FROM users')
+  static deleteAll = () => {
+    UserModel.deleteAll()
   }
 
   //
