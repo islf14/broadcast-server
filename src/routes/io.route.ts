@@ -39,10 +39,11 @@ export function createIo(httpServer: httpServer): Server {
       try {
         const id_user = UserController.login({ name }) as string
         const id_chat = ChatController.newChat()
-        if (id_chat !== '') idChat = id_chat
-        socket.handshake.auth.username = name
         // type 1 = reload
         UserController.notifyLogin({ socket, id: id_user, type: 0 })
+        socket.handshake.auth.username = name
+        if (id_chat !== '') idChat = id_chat
+        else MessageController.loadMessages({ socket, idChat })
       } catch (e: unknown) {
         let message
         if (e instanceof Error) message = e.message
@@ -60,6 +61,7 @@ export function createIo(httpServer: httpServer): Server {
         })
         if (id_user) {
           UserController.notifyLogin({ socket, id: id_user, type })
+          MessageController.loadMessages({ socket, idChat })
         } else {
           socket.handshake.auth.username = null
           socket.emit('server:vlogin_error')

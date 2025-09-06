@@ -23,9 +23,9 @@ export class MessageController {
         idChat
       })
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      console.log('Error:', message)
+      let m
+      if (e instanceof Error) m = e.message
+      console.log('Error:', m)
     }
     if (newMessage) {
       const messagePrint = {
@@ -34,9 +34,22 @@ export class MessageController {
         order: newMessage.ord,
         date: newMessage.createdAt
       }
-      // console.log(messagePrint)
       io.emit('server:message', messagePrint)
     }
+  }
+
+  //
+
+  static loadMessages = ({
+    socket,
+    idChat
+  }: {
+    socket: Socket
+    idChat: string
+  }) => {
+    const messages = MessageModel.messagesByChat({ id: idChat })
+    console.log('load messages')
+    socket.emit('server:login_messages', messages)
   }
 
   //

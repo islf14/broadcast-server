@@ -72,4 +72,31 @@ export class MessageModel {
       throw new Error('can not insert: ' + message)
     }
   }
+
+  //
+
+  static messagesByChat = ({ id }: { id: string }) => {
+    let db
+    try {
+      db = connectMessages()
+    } catch (e: unknown) {
+      let message
+      if (e instanceof Error) message = e.message
+      throw new Error('can not connect: ' + message)
+    }
+
+    return db
+      .prepare(
+        'SELECT id, message, username, ord, chat_id, createdAt as date FROM messages WHERE chat_id = ?'
+      )
+      .all(id) as Array<{
+      message: string
+      username: string
+      ord: number
+      chat_id: string
+      date: string
+    }>
+  }
+
+  //
 }

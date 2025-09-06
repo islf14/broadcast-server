@@ -67,7 +67,6 @@ export class UserController {
   }) => {
     const activeUsers = UserModel.allActiveUsers()
     const user = UserModel.find({ id })
-    // emit messages
     socket.emit('server:login_active_users', activeUsers)
     if (type !== 1) {
       console.log('notify connect')

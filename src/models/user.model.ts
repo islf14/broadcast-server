@@ -78,7 +78,6 @@ export class UserModel {
       db.prepare(
         'INSERT INTO users (id, name, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)'
       ).get(id, name, 1, new Date().toISOString(), new Date().toISOString())
-      // return db.prepare('SELECT * FROM users WHERE id = ?').get(id)
       return id
     } catch (e: unknown) {
       let message
