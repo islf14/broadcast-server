@@ -37,13 +37,16 @@ export function createIo(httpServer: httpServer): Server {
 
     socket.on('user:login', (name) => {
       try {
-        const id = UserController.login({ socket, name }) as string
-        if (id !== '') {
-          idChat = id
-        }
+        const id_user = UserController.login({ name }) as string
+        const id_chat = ChatController.newChat()
+        if (id_chat !== '') idChat = id_chat
+        socket.handshake.auth.username = name
+        // type 1 = reload
+        UserController.notifyLogin({ socket, id: id_user, type: 0 })
       } catch (e: unknown) {
         let message
         if (e instanceof Error) message = e.message
+        socket.emit('server:login_error')
         console.log('Error: ', message)
       }
     })
@@ -51,7 +54,22 @@ export function createIo(httpServer: httpServer): Server {
     // verify login
 
     socket.on('user:vflogin', (type) => {
-      UserController.vlogin({ socket, type })
+      try {
+        const id_user = UserController.vlogin({
+          name: socket.handshake.auth.username
+        })
+        if (id_user) {
+          UserController.notifyLogin({ socket, id: id_user, type })
+        } else {
+          socket.handshake.auth.username = null
+          socket.emit('server:vlogin_error')
+        }
+      } catch (e: unknown) {
+        let message
+        if (e instanceof Error) message = e.message
+        console.log('Error: ', message)
+        socket.emit('server:vlogin_error')
+      }
     })
 
     //

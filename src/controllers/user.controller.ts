@@ -13,95 +13,69 @@ export class UserController {
   }
 
   //
-  //
 
-  static login = ({
-    socket,
-    name
-  }: {
-    socket: Socket
-    name: string
-  }): string => {
+  static login = ({ name }: { name: string }) => {
     console.log('/login name:', name)
-
     const exist = UserModel.findByName({ name })
     if (exist) {
-      socket.emit('server:login_error')
       throw new Error('User already exists')
     }
 
-    // New User
-    let user
     try {
-      user = UserModel.create({ name })
+      return UserModel.create({ name })
     } catch (e: unknown) {
       let message
       if (e instanceof Error) message = e.message
-      socket.emit('server:login_error')
       throw new Error(message)
     }
-
-    // New Chat
-    const allUsers = UserModel.allUsers()
-    let idChat: string = ''
-    if (allUsers.length === 1) {
-      try {
-        idChat = ChatController.create()
-        console.log('chat created')
-      } catch (e: unknown) {
-        let message
-        if (e instanceof Error) message = e.message
-        // delete user on error new chat
-        UserModel.delete({ id: allUsers[0].id })
-        socket.emit('server:login_error')
-        throw new Error('can not create chat: ' + message)
-      }
-    }
-
-    // login ok
-    socket.handshake.auth.username = name
-    const activeUsers = UserModel.allActiveUsers()
-    console.log('notify connect')
-    socket.emit('server:login_active_users', activeUsers)
-    socket.broadcast.emit('server:user_connected', user)
-    return idChat
   }
 
   //
-  //
 
-  static vlogin = ({ socket, type }: { socket: Socket; type: number }) => {
-    console.log('/vlogin name: ', socket.handshake.auth.username)
+  static vlogin = ({ name }: { name: string }) => {
+    console.log('/vlogin name: ', name)
 
     const user = UserModel.findByNameStatus({
-      name: socket.handshake.auth.username,
+      name,
       status: 0
     })
-    //verify that only exist
+
     if (user) {
-      // verify login ok
       try {
         UserModel.updateStatus({ id: user.id, status: 1 })
-        const allUsers = UserModel.allActiveUsers()
-        socket.emit('server:vlogin_active_users', allUsers)
-        if (type !== 1) {
-          console.log('notify connect')
-          socket.broadcast.emit('server:user_connected', user)
-        }
+        return user.id
       } catch (e: unknown) {
         let message
         if (e instanceof Error) message = e.message
-        console.log('Error: ', message)
-        socket.emit('server:vlogin_error')
+        throw new Error(message)
       }
     } else {
-      socket.handshake.auth.username = null
-      socket.emit('server:vlogin_error')
+      return user
     }
   }
 
   //
-  // A L L  U S E R S
+
+  static notifyLogin = ({
+    socket,
+    id,
+    type
+  }: {
+    socket: Socket
+    id: string
+    type: number
+  }) => {
+    const activeUsers = UserModel.allActiveUsers()
+    const user = UserModel.find({ id })
+    // emit messages
+    socket.emit('server:login_active_users', activeUsers)
+    if (type !== 1) {
+      console.log('notify connect')
+      socket.broadcast.emit('server:user_connected', user)
+    }
+  }
+
+  //
 
   static disNotify = ({ socket }: { socket: Socket }): boolean => {
     //

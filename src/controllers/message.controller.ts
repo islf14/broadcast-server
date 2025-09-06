@@ -1,27 +1,5 @@
-import Database from 'libsql'
 import { Server, Socket } from 'socket.io'
 import { MessageModel } from '../models/message.model'
-
-function connectMessages() {
-  const db = new Database('./data.db')
-  try {
-    const tb = db
-      .prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='messages'"
-      )
-      .get()
-    if (tb === undefined) {
-      db.exec(
-        'CREATE TABLE messages (id BLOB PRIMARY KEY, message TEXT, username TEXT, chat_id BLOB, createdAt TEXT, updatedAt TEXT)'
-      )
-    }
-    return db
-  } catch (e: unknown) {
-    let message
-    if (e instanceof Error) message = e.message
-    throw new Error('error db: ' + message)
-  }
-}
 
 export class MessageController {
   //
@@ -37,15 +15,6 @@ export class MessageController {
     msg: string
     idChat: string
   }) => {
-    let db
-    try {
-      db = connectMessages()
-    } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('Error connecting: ' + message)
-    }
-
     let newMessage
     try {
       newMessage = MessageModel.create({
@@ -56,12 +25,18 @@ export class MessageController {
     } catch (e: unknown) {
       let message
       if (e instanceof Error) message = e.message
-      console.log('Error: ', message)
+      console.log('Error:', message)
     }
-    console.log(newMessage)
-    io.emit('server:message', msg)
-    // const messages = db.prepare('SELECT * FROM messages').all()
-    // console.log(messages)
+    if (newMessage) {
+      const messagePrint = {
+        message: newMessage.message,
+        username: newMessage.username,
+        order: newMessage.ord,
+        date: newMessage.createdAt
+      }
+      // console.log(messagePrint)
+      io.emit('server:message', messagePrint)
+    }
   }
 
   //

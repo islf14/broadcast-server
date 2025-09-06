@@ -47,6 +47,27 @@
 
       socket.on('server:message', (msg) => {
         console.log('message: ', msg)
+        const date = new Date(msg.date)
+        const localeTime = date.toLocaleTimeString('en-GB').split(':')
+        const ulchat = document.querySelector('#chat ul')
+        const li = document.createElement('li')
+        const span = document.createElement('span')
+        const p = document.createElement('p')
+        const small = document.createElement('small')
+        span.textContent = msg.username
+        p.textContent = msg.message
+        small.textContent = localeTime[0] + ':' + localeTime[1]
+        li.classList.add('message')
+        if (msg.username === socket.auth.username) {
+          li.classList.add('out')
+        } else {
+          li.classList.add('in')
+        }
+        li.appendChild(span)
+        li.appendChild(p)
+        li.appendChild(small)
+        ulchat.insertAdjacentElement('beforeend', li)
+        ulchat.scrollTop = ulchat.scrollHeight
       })
 
       socket.on('server:vlogin_active_users', (users) => {
@@ -315,6 +336,7 @@
         border-radius: 0.6em;
         padding: 5px;
         max-width: 80%;
+        min-width: 25%;
       }
 
       .in {

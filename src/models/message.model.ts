@@ -11,7 +11,7 @@ function connectMessages() {
       .get()
     if (tb === undefined) {
       db.exec(
-        'CREATE TABLE messages (id BLOB PRIMARY KEY, message TEXT, username TEXT, chat_id BLOB, createdAt TEXT, updatedAt TEXT)'
+        'CREATE TABLE messages (id BLOB PRIMARY KEY, message TEXT, username TEXT, ord NUMERIC, chat_id BLOB, createdAt TEXT, updatedAt TEXT)'
       )
     }
     return db
@@ -44,18 +44,28 @@ export class MessageModel {
     }
 
     try {
+      const order = db
+        .prepare('SELECT MAX(ord) as max FROM messages WHERE chat_id = ?')
+        .get(idChat) as { max: number }
       const id = uuidv4()
       db.prepare(
-        'INSERT INTO messages (id, message, username, chat_id, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)'
+        'INSERT INTO messages (id, message, username, ord, chat_id, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)'
       ).get(
         id,
         message,
         username,
+        order.max ? order.max + 1 : 1,
         idChat,
         new Date().toISOString(),
         new Date().toISOString()
       )
-      return db.prepare('SELECT * FROM messages WHERE id = ?').get(id)
+      return db.prepare('SELECT * FROM messages WHERE id = ?').get(id) as {
+        message: string
+        username: string
+        ord: number
+        chat_id: string
+        createdAt: string
+      }
     } catch (e: unknown) {
       let message
       if (e instanceof Error) message = e.message

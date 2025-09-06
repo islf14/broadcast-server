@@ -78,7 +78,8 @@ export class UserModel {
       db.prepare(
         'INSERT INTO users (id, name, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)'
       ).get(id, name, 1, new Date().toISOString(), new Date().toISOString())
-      return db.prepare('SELECT * FROM users WHERE id = ?').get(id)
+      // return db.prepare('SELECT * FROM users WHERE id = ?').get(id)
+      return id
     } catch (e: unknown) {
       let message
       if (e instanceof Error) message = e.message
@@ -87,6 +88,23 @@ export class UserModel {
   }
 
   //
+
+  static find = ({ id }: { id: string }) => {
+    let db
+    try {
+      db = connectUsers()
+    } catch (e: unknown) {
+      let message
+      if (e instanceof Error) message = e.message
+      throw new Error('can not connect: ' + message)
+    }
+
+    return db.prepare('SELECT * FROM users WHERE id = ?').get(id) as {
+      id: string
+      name: string
+      status: number
+    }
+  }
 
   static findByName = ({ name }: { name: string }) => {
     let db
