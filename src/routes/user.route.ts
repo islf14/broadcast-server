@@ -6,8 +6,6 @@ export const createUserRouter = () => {
 
   const userRouter = Router()
 
-  // userRouter.post('/login', userController.login)
-  // userRouter.post('/vlogin', userController.vlogin)
   userRouter.get('/users', userController.users)
 
   return userRouter

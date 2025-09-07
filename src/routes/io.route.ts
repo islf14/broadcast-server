@@ -7,7 +7,6 @@ import { ChatController } from '../controllers/chat.controller'
 export function createIo(httpServer: httpServer): Server {
   //
   // S O C K E T
-  console.log('::: Creating io...')
   const io = new Server(httpServer, {
     /* options */
   })
@@ -21,18 +20,13 @@ export function createIo(httpServer: httpServer): Server {
       idChat = chat.id
     }
   } catch (e: unknown) {
-    let message
-    if (e instanceof Error) message = e.message
-    console.log('Error: ', message)
+    let m
+    if (e instanceof Error) m = e.message
+    console.log('Error: ', m)
   }
 
   io.on('connection', (socket) => {
     //
-    console.log(
-      '=> connection: ',
-      socket.id + ' ' + socket.handshake.auth.username
-    )
-
     //login
 
     socket.on('user:login', (name) => {
@@ -42,13 +36,16 @@ export function createIo(httpServer: httpServer): Server {
         // type 1 = reload
         UserController.notifyLogin({ socket, id: id_user, type: 0 })
         socket.handshake.auth.username = name
-        if (id_chat !== '') idChat = id_chat
-        else MessageController.loadMessages({ socket, idChat })
+        if (id_chat !== '') {
+          idChat = id_chat
+        } else {
+          MessageController.loadMessages({ socket, idChat })
+        }
       } catch (e: unknown) {
-        let message
-        if (e instanceof Error) message = e.message
-        socket.emit('server:login_error')
-        console.log('Error: ', message)
+        let m
+        if (e instanceof Error) m = e.message
+        socket.emit('server:login_error', 'Try again or another name')
+        console.log('Error: ', m)
       }
     })
 
@@ -64,13 +61,13 @@ export function createIo(httpServer: httpServer): Server {
           MessageController.loadMessages({ socket, idChat })
         } else {
           socket.handshake.auth.username = null
-          socket.emit('server:vlogin_error')
+          socket.emit('server:login_error', 'New chat, login again.')
         }
       } catch (e: unknown) {
-        let message
-        if (e instanceof Error) message = e.message
-        console.log('Error: ', message)
-        socket.emit('server:vlogin_error')
+        let m
+        if (e instanceof Error) m = e.message
+        console.log('Error: ', m)
+        socket.emit('server:login_error', 'Error, login again.')
       }
     })
 
@@ -78,16 +75,12 @@ export function createIo(httpServer: httpServer): Server {
 
     socket.on('user:clean', () => {
       socket.handshake.auth.username = null
-      console.log('clean: ', socket.id + ' ' + socket.handshake.auth.username)
+      socket.handshake.auth.countMessages = 0
     })
 
     //
 
     socket.on('disconnect', async () => {
-      console.log(
-        '=> disconnect: ',
-        socket.id + ' ' + socket.handshake.auth.username
-      )
       if (socket.handshake.auth.username !== null && idChat !== '') {
         UserController.logout({ socket })
         try {
@@ -96,9 +89,9 @@ export function createIo(httpServer: httpServer): Server {
             idChat = ''
           }
         } catch (e: unknown) {
-          let message
-          if (e instanceof Error) message = e.message
-          console.log('Error: ', message)
+          let m
+          if (e instanceof Error) m = e.message
+          console.log('Error: ', m)
         }
       }
     })
@@ -106,24 +99,20 @@ export function createIo(httpServer: httpServer): Server {
     //
 
     socket.on('user:logout', () => {
-      console.log(
-        '=> user:logout: ',
-        socket.id + ' ' + socket.handshake.auth.username
-      )
-
       if (socket.handshake.auth.username !== null && idChat !== '') {
-        UserController.logout({ socket })
         try {
+          UserController.logout({ socket })
           const endChat = UserController.disNotify({ socket })
           if (endChat) {
             idChat = ''
           }
+          socket.handshake.auth.username = null
+          socket.handshake.auth.countMessages = 0
         } catch (e: unknown) {
-          let message
-          if (e instanceof Error) message = e.message
-          console.log('Error: ', message)
+          let m
+          if (e instanceof Error) m = e.message
+          console.log('Error: ', m)
         }
-        socket.handshake.auth.username = null
       }
     })
 
@@ -131,8 +120,13 @@ export function createIo(httpServer: httpServer): Server {
 
     socket.on('user:message', (msg) => {
       if (socket.handshake.auth.username !== null) {
-        console.log(socket.handshake.auth)
-        MessageController.create({ io, socket, msg, idChat })
+        try {
+          MessageController.create({ io, socket, msg, idChat })
+        } catch (e: unknown) {
+          let m
+          if (e instanceof Error) m = e.message
+          console.log('Error: ', m)
+        }
       }
     })
 

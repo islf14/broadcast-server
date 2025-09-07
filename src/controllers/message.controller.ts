@@ -22,19 +22,14 @@ export class MessageController {
         username: socket.handshake.auth.username,
         idChat
       })
+
+      if (newMessage) {
+        io.emit('server:message', newMessage)
+      }
     } catch (e: unknown) {
       let m
       if (e instanceof Error) m = e.message
-      console.log('Error:', m)
-    }
-    if (newMessage) {
-      const messagePrint = {
-        message: newMessage.message,
-        username: newMessage.username,
-        order: newMessage.ord,
-        date: newMessage.createdAt
-      }
-      io.emit('server:message', messagePrint)
+      throw new Error('can not create new message:' + m)
     }
   }
 
@@ -47,8 +42,10 @@ export class MessageController {
     socket: Socket
     idChat: string
   }) => {
-    const messages = MessageModel.messagesByChat({ id: idChat })
-    console.log('load messages')
+    const messages = MessageModel.messagesByChatOrder({
+      id: idChat,
+      ord: socket.handshake.auth.countMessages
+    })
     socket.emit('server:login_messages', messages)
   }
 

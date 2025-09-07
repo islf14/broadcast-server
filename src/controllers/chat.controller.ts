@@ -10,16 +10,14 @@ export class ChatController {
     if (allUsers.length === 1) {
       try {
         idChat = ChatModel.create()
-        console.log('chat created')
       } catch (e: unknown) {
-        let message
-        if (e instanceof Error) message = e.message
+        let m
+        if (e instanceof Error) m = e.message
         // delete user on error new chat
         UserModel.delete({ id: allUsers[0].id })
-        throw new Error('can not create chat: ' + message)
+        throw new Error('can not create chat: ' + m)
       }
     }
-
     return idChat
   }
 

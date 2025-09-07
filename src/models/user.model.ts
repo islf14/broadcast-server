@@ -15,10 +15,10 @@ function connectUsers() {
       )
     }
     return db
-  } catch (e) {
-    let message
-    if (e instanceof Error) message = e.message
-    throw new Error('error db: ' + message)
+  } catch (e: unknown) {
+    let m
+    if (e instanceof Error) m = e.message
+    throw new Error('error db: ' + m)
   }
 }
 
@@ -30,9 +30,9 @@ export class UserModel {
     try {
       db = connectUsers()
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not connect: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
     }
 
     return db.prepare('SELECT * FROM users WHERE status = ?').all(1) as Array<{
@@ -49,9 +49,9 @@ export class UserModel {
     try {
       db = connectUsers()
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not connect: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
     }
 
     return db.prepare('SELECT * FROM users').all() as Array<{
@@ -68,9 +68,9 @@ export class UserModel {
     try {
       db = connectUsers()
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not connect: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
     }
 
     try {
@@ -80,9 +80,9 @@ export class UserModel {
       ).get(id, name, 1, new Date().toISOString(), new Date().toISOString())
       return id
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not insert: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not insert: ' + m)
     }
   }
 
@@ -93,9 +93,9 @@ export class UserModel {
     try {
       db = connectUsers()
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not connect: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
     }
 
     return db.prepare('SELECT * FROM users WHERE id = ?').get(id) as {
@@ -110,9 +110,9 @@ export class UserModel {
     try {
       db = connectUsers()
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not connect: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
     }
 
     return db.prepare('SELECT * FROM users WHERE name = ?').get(name) as {
@@ -135,9 +135,9 @@ export class UserModel {
     try {
       db = connectUsers()
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not connect: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
     }
 
     return db
@@ -156,9 +156,9 @@ export class UserModel {
     try {
       db = connectUsers()
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not connect: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
     }
 
     try {
@@ -168,9 +168,9 @@ export class UserModel {
         id
       )
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not update: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not update: ' + m)
     }
   }
 
@@ -185,9 +185,9 @@ export class UserModel {
     try {
       db = connectUsers()
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not connect: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
     }
 
     try {
@@ -195,9 +195,9 @@ export class UserModel {
         'UPDATE users SET status = ?, updatedAt = ? WHERE name = ?'
       ).get(status, new Date().toISOString(), name)
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not update: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not update: ' + m)
     }
   }
 
@@ -208,17 +208,17 @@ export class UserModel {
     try {
       db = connectUsers()
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not connect: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
     }
 
     try {
       db.prepare('DELETE FROM users WHERE id = ?').get(id)
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not delete: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not delete: ' + m)
     }
   }
 
@@ -227,17 +227,17 @@ export class UserModel {
     try {
       db = connectUsers()
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not connect: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
     }
 
     try {
       db.exec('DELETE FROM users')
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not delete all: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not delete all: ' + m)
     }
   }
 

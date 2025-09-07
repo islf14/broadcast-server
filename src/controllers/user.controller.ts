@@ -8,14 +8,12 @@ export class UserController {
 
   users = (_req: Request, res: Response) => {
     const row = UserModel.allUsers()
-    console.log(row)
     return res.status(200).json(row)
   }
 
   //
 
   static login = ({ name }: { name: string }) => {
-    console.log('/login name:', name)
     const exist = UserModel.findByName({ name })
     if (exist) {
       throw new Error('User already exists')
@@ -24,17 +22,15 @@ export class UserController {
     try {
       return UserModel.create({ name })
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error(message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error(m)
     }
   }
 
   //
 
   static vlogin = ({ name }: { name: string }) => {
-    console.log('/vlogin name: ', name)
-
     const user = UserModel.findByNameStatus({
       name,
       status: 0
@@ -45,9 +41,9 @@ export class UserController {
         UserModel.updateStatus({ id: user.id, status: 1 })
         return user.id
       } catch (e: unknown) {
-        let message
-        if (e instanceof Error) message = e.message
-        throw new Error(message)
+        let m
+        if (e instanceof Error) m = e.message
+        throw new Error(m)
       }
     } else {
       return user
@@ -69,7 +65,6 @@ export class UserController {
     const user = UserModel.find({ id })
     socket.emit('server:login_active_users', activeUsers)
     if (type !== 1) {
-      console.log('notify connect')
       socket.broadcast.emit('server:user_connected', user)
     }
   }
@@ -86,15 +81,13 @@ export class UserController {
       try {
         ChatController.closeChat()
         UserController.deleteAll()
-        console.log('Chat closed')
         return true
       } catch (e: unknown) {
-        let message
-        if (e instanceof Error) message = e.message
-        throw new Error('unable to close chat: ' + message)
+        let m
+        if (e instanceof Error) m = e.message
+        throw new Error('unable to close chat: ' + m)
       }
     } else {
-      console.log('notify disconnection')
       socket.broadcast.emit('server:user_disconnected', user)
       return false
     }
@@ -117,7 +110,6 @@ export class UserController {
           // Notify disconnection or close chat
           resolve(UserController.disNotify({ socket }))
         } else {
-          console.log('...realoaded')
           resolve(false)
         }
       }, 1000)
@@ -128,17 +120,15 @@ export class UserController {
   //
 
   static logout = ({ socket }: { socket: Socket }) => {
-    console.log('/logout: ', socket.handshake.auth.username)
-
     try {
       UserModel.updateStatusByName({
         name: socket.handshake.auth.username,
         status: 0
       })
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      console.log('Error: ', message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not logout: ' + m)
     }
   }
 

@@ -6,30 +6,19 @@
     <title>Chat Client</title>
     <script src="/socket.io/socket.io.js"></script>
     <script type="module">
-      //
       const $ = (e) => document.querySelector(e)
-
-      const getUsername = () => {
-        const username = localStorage.getItem('user_broadcast')
-        if (username) {
-          return username
-        }
-        return null
-      }
-
+      const u_bc = 'user_broadcast'
       // S O C K E T //
       const socket = io({
         auth: {
-          username: getUsername(),
+          username: localStorage.getItem(u_bc) ?? null,
           countMessages: 0
         }
       })
 
       // V E R I F Y  L O G I N
       socket.on('connect', () => {
-        console.log(socket.id)
-        console.log('username: ', socket.auth.username)
-        const username = localStorage.getItem('user_broadcast')
+        const username = localStorage.getItem(u_bc)
         if (username) {
           socket.emit('user:vflogin', window.performance.navigation.type)
         } else {
@@ -41,45 +30,14 @@
         }
       })
 
-      socket.on('disconnect', () => {
-        console.log('*** in disconecct')
-      })
-
       socket.on('server:message', (message) => {
-        console.log('message: ', message)
-        const date = new Date(message.date)
-        const localeTime = date.toLocaleTimeString('en-GB').split(':')
-        const ulchat = document.querySelector('#chat ul')
-        const li = document.createElement('li')
-        const span = document.createElement('span')
-        const p = document.createElement('p')
-        const small = document.createElement('small')
-        span.textContent = message.username
-        p.textContent = message.message
-        small.textContent = localeTime[0] + ':' + localeTime[1]
-        li.classList.add('message')
-        if (message.username === socket.auth.username) {
-          li.classList.add('out')
-        } else {
-          li.classList.add('in')
-        }
-        li.appendChild(span)
-        li.appendChild(p)
-        li.appendChild(small)
-        ulchat.insertAdjacentElement('beforeend', li)
-        ulchat.scrollTop = ulchat.scrollHeight
-      })
-
-      socket.on('server:login_messages', (messages) => {
-        const ulchat = document.querySelector('#chat ul')
-        console.log('...messages')
-        console.log(messages)
-        ulchat.innerHTML = ''
-
-        messages.forEach((message) => {
+        if (
+          localStorage.getItem(u_bc) !== null &&
+          localStorage.getItem(u_bc) === socket.auth.username
+        ) {
           const date = new Date(message.date)
           const localeTime = date.toLocaleTimeString('en-GB').split(':')
-          const ulchat = document.querySelector('#chat ul')
+          const ulchat = $('#chat ul')
           const li = document.createElement('li')
           const span = document.createElement('span')
           const p = document.createElement('p')
@@ -98,21 +56,48 @@
           li.appendChild(small)
           ulchat.insertAdjacentElement('beforeend', li)
           ulchat.scrollTop = ulchat.scrollHeight
+          if (message.ord > socket.auth.countMessages) {
+            socket.auth.countMessages = message.ord
+          }
+        }
+      })
+
+      socket.on('server:login_messages', (messages) => {
+        const ulchat = $('#chat ul')
+        messages.forEach((message) => {
+          const date = new Date(message.date)
+          const localeTime = date.toLocaleTimeString('en-GB').split(':')
+          const ulchat = $('#chat ul')
+          const li = document.createElement('li')
+          const span = document.createElement('span')
+          const p = document.createElement('p')
+          const small = document.createElement('small')
+          span.textContent = message.username
+          p.textContent = message.message
+          small.textContent = localeTime[0] + ':' + localeTime[1]
+          li.classList.add('message')
+          if (message.username === socket.auth.username) {
+            li.classList.add('out')
+          } else {
+            li.classList.add('in')
+          }
+          li.appendChild(span)
+          li.appendChild(p)
+          li.appendChild(small)
+          ulchat.insertAdjacentElement('beforeend', li)
+          ulchat.scrollTop = ulchat.scrollHeight
+          if (message.ord > socket.auth.countMessages) {
+            socket.auth.countMessages = message.ord
+          }
         })
       })
 
       socket.on('server:login_active_users', (users) => {
-        socket.auth.username = localStorage.getItem('user_broadcast')
+        socket.auth.username = localStorage.getItem(u_bc)
         $('#name').value = ''
         modechat()
-        listUsers(users)
-      })
-
-      function listUsers(users) {
-        console.log('list users')
-        console.log(users)
-        const username = localStorage.getItem('user_broadcast')
-        const ulusers = document.querySelector('#divusers ul')
+        const username = localStorage.getItem(u_bc)
+        const ulusers = $('#divusers ul')
         ulusers.innerHTML = ''
 
         users.forEach((element) => {
@@ -138,56 +123,56 @@
             ulusers.insertAdjacentElement('beforeend', li)
           }
         })
-      }
+      })
 
       socket.on('server:user_connected', (user) => {
-        console.log('...user connected')
-        const ulusers = document.querySelector('#divusers ul')
-        const liUsers = document.querySelectorAll('#divusers ul li')
-
-        let add = true
-        liUsers.forEach((item) => {
-          if (item.children[0].textContent === user.name) {
-            add = false
+        if (
+          localStorage.getItem(u_bc) !== null &&
+          localStorage.getItem(u_bc) === socket.auth.username
+        ) {
+          const ulusers = $('#divusers ul')
+          const liUsers = document.querySelectorAll('#divusers ul li')
+          let add = true
+          liUsers.forEach((item) => {
+            if (item.children[0].textContent === user.name) {
+              add = false
+            }
+          })
+          if (add) {
+            const li = document.createElement('li')
+            const span = document.createElement('span')
+            span.textContent = user.name
+            li.appendChild(span)
+            ulusers.insertAdjacentElement('beforeend', li)
           }
-        })
-
-        if (add) {
-          const li = document.createElement('li')
-          const span = document.createElement('span')
-          span.textContent = user.name
-          li.appendChild(span)
-          ulusers.insertAdjacentElement('beforeend', li)
         }
       })
 
       socket.on('server:user_disconnected', (user) => {
-        console.log('...user disconnect')
-        const ulusers = document.querySelector('#divusers ul')
-        const liUsers = document.querySelectorAll('#divusers ul li')
-        liUsers.forEach((item) => {
-          if (item.children[0].textContent === user.name) {
-            ulusers.removeChild(item)
-          }
-        })
+        if (
+          localStorage.getItem(u_bc) !== null &&
+          localStorage.getItem(u_bc) === socket.auth.username
+        ) {
+          const ulusers = $('#divusers ul')
+          const liUsers = document.querySelectorAll('#divusers ul li')
+          liUsers.forEach((item) => {
+            if (item.children[0].textContent === user.name) {
+              ulusers.removeChild(item)
+            }
+          })
+        }
       })
 
-      socket.on('server:vlogin_error', () => {
-        console.log('error vf login')
-        localStorage.removeItem('user_broadcast')
+      socket.on('server:login_error', (msg) => {
+        localStorage.removeItem(u_bc)
         modelogin()
-      })
-
-      socket.on('server:login_error', () => {
-        console.log('error login')
-        localStorage.removeItem('user_broadcast')
-        const sp = document.querySelector('#formlogin span')
-        sp.innerText = 'try another name'
+        const sp = $('#formlogin span')
+        sp.innerText = msg
         sp.style.color = 'red'
       })
 
       //  L O G I N
-      document.querySelector('#formlogin').addEventListener('submit', (e) => {
+      $('#formlogin').addEventListener('submit', (e) => {
         e.preventDefault()
         const name = $('#name').value.trim()
         $('#name').value = name
@@ -197,19 +182,29 @@
           return
         }
         e.target.children[1].innerText = ''
-        localStorage.setItem('user_broadcast', name)
+        localStorage.setItem(u_bc, name)
         socket.emit('user:login', name)
       })
 
-      document.querySelector('#formchat').addEventListener('submit', (e) => {
+      // M E S S A G E
+      $('#formchat').addEventListener('submit', (e) => {
         e.preventDefault()
-        const message = e.target.children[0].value
-        e.target.children[0].value = ''
-        socket.emit('user:message', message)
+        if (
+          localStorage.getItem(u_bc) !== null &&
+          localStorage.getItem(u_bc) === socket.auth.username
+        ) {
+          const message = e.target.children[0].value
+          e.target.children[0].value = ''
+          socket.emit('user:message', message)
+        }
       })
 
       function logout() {
-        localStorage.removeItem('user_broadcast')
+        localStorage.removeItem(u_bc)
+        socket.auth.countMessages = 0
+        socket.auth.username = null
+        const ulchat = $('#chat ul')
+        ulchat.innerHTML = ''
         socket.emit('user:logout')
         modelogin()
       }
@@ -448,80 +443,12 @@
             </form>
           </div>
           <div id="divusers" class="div-show-users" style="display: none">
-            <ul class="listusers">
-              <!-- <li>
-                <span>you</span>
-                <button class="btn-logout">Logout</button>
-              </li>
-              <li>
-                <span>Chris</span>
-              </li> -->
-            </ul>
+            <ul class="listusers"></ul>
           </div>
         </section>
         <section id="chat" class="chat" style="display: none">
           <div class="div-show-messages">
-            <ul class="messages">
-              <li class="message in">
-                <span>Caris Yek</span>
-                <p>
-                  Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-                  Amet, laboriosam?
-                </p>
-                <small>15:34</small>
-              </li>
-              <li class="message in">
-                <span>Sandra H</span>
-                <p>holiw</p>
-                <small>15:34</small>
-              </li>
-              <li class="message out">
-                <span>You</span>
-                <p>holiw</p>
-                <small>15:34</small>
-              </li>
-              <li class="message in">
-                <span>Juancho</span>
-                <p>holiw</p>
-                <small>15:23</small>
-              </li>
-              <li class="message in">
-                <span>Juancho</span>
-                <p>holiw</p>
-                <small>15:23</small>
-              </li>
-              <li class="message in">
-                <span>Juancho</span>
-                <p>holiw</p>
-                <small>15:23</small>
-              </li>
-              <li class="message in">
-                <span>Juancho</span>
-                <p>holiw</p>
-                <small>15:23</small>
-              </li>
-              <li class="message in">
-                <span>Juancho</span>
-                <p>holiw</p>
-                <small>15:23</small>
-              </li>
-              <li class="message in">
-                <span>Juancho</span>
-                <p>holiw</p>
-                <small>15:23</small>
-              </li>
-              <li class="message in">
-                <span>Juancho</span>
-                <p>holiw</p>
-                <small>15:23</small>
-              </li>
-
-              <li class="message in">
-                <span>pablito</span>
-                <p>this is the last message</p>
-                <small>14:20</small>
-              </li>
-            </ul>
+            <ul class="messages"></ul>
           </div>
           <form id="formchat" class="formchat" action="">
             <input

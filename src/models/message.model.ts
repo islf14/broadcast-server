@@ -16,9 +16,9 @@ function connectMessages() {
     }
     return db
   } catch (e: unknown) {
-    let message
-    if (e instanceof Error) message = e.message
-    throw new Error('error db: ' + message)
+    let m
+    if (e instanceof Error) m = e.message
+    throw new Error('error db: ' + m)
   }
 }
 
@@ -38,9 +38,9 @@ export class MessageModel {
     try {
       db = connectMessages()
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not connect: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
     }
 
     try {
@@ -59,37 +59,41 @@ export class MessageModel {
         new Date().toISOString(),
         new Date().toISOString()
       )
-      return db.prepare('SELECT * FROM messages WHERE id = ?').get(id) as {
+      return db
+        .prepare(
+          'SELECT message, username, ord, chat_id, createdAt as date FROM messages WHERE id = ?'
+        )
+        .get(id) as {
         message: string
         username: string
         ord: number
         chat_id: string
-        createdAt: string
+        date: string
       }
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not insert: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not insert: ' + m)
     }
   }
 
   //
 
-  static messagesByChat = ({ id }: { id: string }) => {
+  static messagesByChatOrder = ({ id, ord }: { id: string; ord: number }) => {
     let db
     try {
       db = connectMessages()
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not connect: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
     }
 
     return db
       .prepare(
-        'SELECT id, message, username, ord, chat_id, createdAt as date FROM messages WHERE chat_id = ?'
+        'SELECT message, username, ord, chat_id, createdAt as date FROM messages WHERE chat_id = ? AND ord > ?'
       )
-      .all(id) as Array<{
+      .all(id, ord) as Array<{
       message: string
       username: string
       ord: number

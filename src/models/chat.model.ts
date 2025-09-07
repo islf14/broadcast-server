@@ -16,9 +16,9 @@ function connectChats() {
     }
     return db
   } catch (e: unknown) {
-    let message
-    if (e instanceof Error) message = e.message
-    throw new Error('error db: ' + message)
+    let m
+    if (e instanceof Error) m = e.message
+    throw new Error('error db: ' + m)
   }
 }
 
@@ -30,9 +30,9 @@ export class ChatModel {
     try {
       db = connectChats()
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not connect: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
     }
 
     try {
@@ -42,9 +42,9 @@ export class ChatModel {
       ).get(idChat, 1, new Date().toISOString(), new Date().toISOString())
       return idChat
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('Error newChat: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('Error newChat: ' + m)
     }
   }
 
@@ -61,9 +61,9 @@ export class ChatModel {
     try {
       db = connectChats()
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not connect: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
     }
 
     try {
@@ -72,9 +72,9 @@ export class ChatModel {
       ).get(newStatus, new Date().toISOString(), status)
       return true
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('Error closing chat: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('Error closing chat: ' + m)
     }
   }
 
@@ -85,9 +85,9 @@ export class ChatModel {
     try {
       db = connectChats()
     } catch (e: unknown) {
-      let message
-      if (e instanceof Error) message = e.message
-      throw new Error('can not connect: ' + message)
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
     }
 
     return db.prepare('SELECT * FROM chats WHERE status = ?').get(status) as {
