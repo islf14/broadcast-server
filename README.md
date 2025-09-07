@@ -1,6 +1,4 @@
-# Broadcast Server
-
-JavaScript solution for [Broadcast Server](https://roadmap.sh/projects/broadcast-server) from [roadmap.sh](https://roadmap.sh/).
+# Broadcast Server Web App
 
 ## Requirements
 
