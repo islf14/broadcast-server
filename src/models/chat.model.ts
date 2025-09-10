@@ -1,5 +1,6 @@
 import Database from 'libsql'
 import { v4 as uuidv4 } from 'uuid'
+import { StatusChat, UpdateChat } from '../types.js'
 
 function connectChats() {
   const db = new Database('./data.db')
@@ -50,13 +51,7 @@ export class ChatModel {
 
   //
 
-  static updateStatusByStatus = ({
-    status,
-    newStatus
-  }: {
-    status: number
-    newStatus: number
-  }) => {
+  static updateStatusByStatus = ({ status, newStatus }: UpdateChat) => {
     let db
     try {
       db = connectChats()
@@ -80,7 +75,7 @@ export class ChatModel {
 
   //
 
-  static findByStatus = ({ status }: { status: number }) => {
+  static findByStatus = ({ status }: StatusChat) => {
     let db
     try {
       db = connectChats()

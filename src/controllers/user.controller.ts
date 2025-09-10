@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
-import { ChatController } from './chat.controller'
-import { UserModel } from '../models/user.model'
+import { ChatController } from './chat.controller.js'
+import { UserModel } from '../models/user.model.js'
 
 export class UserController {
   ////

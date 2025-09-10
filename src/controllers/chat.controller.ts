@@ -1,5 +1,5 @@
-import { ChatModel } from '../models/chat.model'
-import { UserModel } from '../models/user.model'
+import { ChatModel } from '../models/chat.model.js'
+import { UserModel } from '../models/user.model.js'
 
 export class ChatController {
   //

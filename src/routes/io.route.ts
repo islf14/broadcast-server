@@ -1,14 +1,14 @@
 import { Server } from 'socket.io'
 import { Server as httpServer } from 'node:http'
-import { UserController } from '../controllers/user.controller'
-import { MessageController } from '../controllers/message.controller'
-import { ChatController } from '../controllers/chat.controller'
+import { UserController } from '../controllers/user.controller.js'
+import { MessageController } from '../controllers/message.controller.js'
+import { ChatController } from '../controllers/chat.controller.js'
 import {
   ClientToServerEvents,
   InterServerEvents,
   ServerToClientEvents,
   SocketData
-} from '../types'
+} from '../types.js'
 
 export function createIo(httpServer: httpServer): Server {
   //
@@ -53,7 +53,10 @@ export function createIo(httpServer: httpServer): Server {
         if (id_chat !== '') {
           idChat = id_chat
         } else {
-          const messages = MessageController.loadMessages({ socket, idChat })
+          const messages = MessageController.loadMessages({
+            idChat,
+            count: socket.handshake.auth.countMessages
+          })
           socket.emit('server:login_messages', messages)
         }
       } catch (e: unknown) {
@@ -77,7 +80,10 @@ export function createIo(httpServer: httpServer): Server {
           if (type !== 1) {
             socket.broadcast.emit('server:user_connected', notifyLogin.user)
           }
-          const messages = MessageController.loadMessages({ socket, idChat })
+          const messages = MessageController.loadMessages({
+            idChat,
+            count: socket.handshake.auth.countMessages
+          })
           socket.emit('server:login_messages', messages)
         } else {
           socket.handshake.auth.username = null

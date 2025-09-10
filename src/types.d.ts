@@ -16,9 +16,44 @@ export interface ClientToServerEvents {
 }
 
 export interface InterServerEvents {}
-
 export interface SocketData {}
 
-export interface Auth {
-  username: string
+export type UpdateChat = {
+  status: number
+  newStatus: number
 }
+
+export type StatusChat = Pick<stChat, 'status'>
+
+export type NewMessage = {
+  message: string
+  username: string
+  idChat: string
+}
+
+export type Messages = {
+  id: string
+  ord: number
+}
+
+export type MessageDB = {
+  message: string
+  username: string
+  ord: number
+  chat_id: string
+  date: string
+}
+
+export type UserDB = {
+  id: string
+  name: string
+  status: number
+}
+
+export type Id = Pick<UserDB, 'id'>
+
+export type Name = Pick<UserDB, 'name'>
+
+export type NaSt = Omit<UserDB, 'id'>
+
+export type IdSt = Omit<UserDB, 'name'>

@@ -1,5 +1,6 @@
 import Database from 'libsql'
 import { v4 as uuidv4 } from 'uuid'
+import { Messages, MessageDB, NewMessage } from '../types.js'
 
 function connectMessages() {
   const db = new Database('./data.db')
@@ -25,15 +26,7 @@ function connectMessages() {
 export class MessageModel {
   //
 
-  static create = ({
-    message,
-    username,
-    idChat
-  }: {
-    message: string
-    username: string
-    idChat: string
-  }) => {
+  static create = ({ message, username, idChat }: NewMessage) => {
     let db
     try {
       db = connectMessages()
@@ -63,13 +56,7 @@ export class MessageModel {
         .prepare(
           'SELECT message, username, ord, chat_id, createdAt as date FROM messages WHERE id = ?'
         )
-        .get(id) as {
-        message: string
-        username: string
-        ord: number
-        chat_id: string
-        date: string
-      }
+        .get(id) as MessageDB
     } catch (e: unknown) {
       let m
       if (e instanceof Error) m = e.message
@@ -79,7 +66,7 @@ export class MessageModel {
 
   //
 
-  static messagesByChatOrder = ({ id, ord }: { id: string; ord: number }) => {
+  static messagesByChatOrder = ({ id, ord }: Messages) => {
     let db
     try {
       db = connectMessages()
@@ -93,13 +80,7 @@ export class MessageModel {
       .prepare(
         'SELECT message, username, ord, chat_id, createdAt as date FROM messages WHERE chat_id = ? AND ord > ?'
       )
-      .all(id, ord) as Array<{
-      message: string
-      username: string
-      ord: number
-      chat_id: string
-      date: string
-    }>
+      .all(id, ord) as Array<MessageDB>
   }
 
   //

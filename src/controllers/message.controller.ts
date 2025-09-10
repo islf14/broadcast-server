@@ -1,5 +1,4 @@
-import { Socket } from 'socket.io'
-import { MessageModel } from '../models/message.model'
+import { MessageModel } from '../models/message.model.js'
 
 export class MessageController {
   //
@@ -29,15 +28,15 @@ export class MessageController {
   //
 
   static loadMessages = ({
-    socket,
-    idChat
+    idChat,
+    count
   }: {
-    socket: Socket
     idChat: string
+    count: number
   }) => {
     return MessageModel.messagesByChatOrder({
       id: idChat,
-      ord: socket.handshake.auth.countMessages
+      ord: count
     })
   }
 

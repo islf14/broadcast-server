@@ -2,6 +2,7 @@
   "name": "14-broadcast-server",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "start": "node build/index.js",
@@ -21,7 +22,6 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
-    "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3"
   }
 }

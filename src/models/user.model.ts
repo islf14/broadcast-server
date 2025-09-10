@@ -1,5 +1,6 @@
 import Database from 'libsql'
 import { v4 as uuidv4 } from 'uuid'
+import { Id, IdSt, Name, NaSt, UserDB } from '../types.js'
 
 function connectUsers() {
   const db = new Database('./data.db')
@@ -35,11 +36,9 @@ export class UserModel {
       throw new Error('can not connect: ' + m)
     }
 
-    return db.prepare('SELECT * FROM users WHERE status = ?').all(1) as Array<{
-      id: string
-      name: string
-      status: number
-    }>
+    return db
+      .prepare('SELECT * FROM users WHERE status = ?')
+      .all(1) as Array<UserDB>
   }
 
   //
@@ -54,16 +53,12 @@ export class UserModel {
       throw new Error('can not connect: ' + m)
     }
 
-    return db.prepare('SELECT * FROM users').all() as Array<{
-      id: string
-      name: string
-      status: number
-    }>
+    return db.prepare('SELECT * FROM users').all() as Array<UserDB>
   }
 
   //
 
-  static create = ({ name }: { name: string }) => {
+  static create = ({ name }: Name) => {
     let db
     try {
       db = connectUsers()
@@ -88,7 +83,7 @@ export class UserModel {
 
   //
 
-  static find = ({ id }: { id: string }) => {
+  static find = ({ id }: Id) => {
     let db
     try {
       db = connectUsers()
@@ -98,14 +93,10 @@ export class UserModel {
       throw new Error('can not connect: ' + m)
     }
 
-    return db.prepare('SELECT * FROM users WHERE id = ?').get(id) as {
-      id: string
-      name: string
-      status: number
-    }
+    return db.prepare('SELECT * FROM users WHERE id = ?').get(id) as UserDB
   }
 
-  static findByName = ({ name }: { name: string }) => {
+  static findByName = ({ name }: Name) => {
     let db
     try {
       db = connectUsers()
@@ -115,22 +106,12 @@ export class UserModel {
       throw new Error('can not connect: ' + m)
     }
 
-    return db.prepare('SELECT * FROM users WHERE name = ?').get(name) as {
-      id: string
-      name: string
-      status: number
-    }
+    return db.prepare('SELECT * FROM users WHERE name = ?').get(name) as UserDB
   }
 
   //
 
-  static findByNameStatus = ({
-    name,
-    status
-  }: {
-    name: string
-    status: number
-  }) => {
+  static findByNameStatus = ({ name, status }: NaSt) => {
     let db
     try {
       db = connectUsers()
@@ -142,16 +123,12 @@ export class UserModel {
 
     return db
       .prepare('SELECT * FROM users WHERE name = ? AND status = ?')
-      .get(name, status) as {
-      id: string
-      name: string
-      status: number
-    }
+      .get(name, status) as UserDB
   }
 
   //
 
-  static updateStatus = ({ id, status }: { id: string; status: number }) => {
+  static updateStatus = ({ id, status }: IdSt) => {
     let db
     try {
       db = connectUsers()
@@ -174,13 +151,7 @@ export class UserModel {
     }
   }
 
-  static updateStatusByName = ({
-    name,
-    status
-  }: {
-    name: string
-    status: number
-  }) => {
+  static updateStatusByName = ({ name, status }: NaSt) => {
     let db
     try {
       db = connectUsers()
@@ -203,7 +174,7 @@ export class UserModel {
 
   //
 
-  static delete = ({ id }: { id: string }) => {
+  static delete = ({ id }: Id) => {
     let db
     try {
       db = connectUsers()

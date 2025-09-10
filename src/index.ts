@@ -1,7 +1,7 @@
 import express, { json } from 'express'
 import { createServer } from 'node:http'
-import { createUserRouter } from './routes/user.route'
-import { createIo } from './routes/io.route'
+import { createUserRouter } from './routes/user.route.js'
+import { createIo } from './routes/io.route.js'
 import 'dotenv/config'
 
 const port = process.env.PORT ?? 3000
