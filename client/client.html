@@ -193,9 +193,11 @@
           localStorage.getItem(u_bc) !== null &&
           localStorage.getItem(u_bc) === socket.auth.username
         ) {
-          const message = e.target.children[0].value
-          e.target.children[0].value = ''
-          socket.emit('user:message', message)
+          if (e.target.children[0].value !== '') {
+            const message = e.target.children[0].value
+            e.target.children[0].value = ''
+            socket.emit('user:message', message)
+          }
         }
       })
 

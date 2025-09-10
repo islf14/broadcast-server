@@ -1,5 +1,4 @@
 import { Request, Response } from 'express'
-import { Socket } from 'socket.io'
 import { ChatController } from './chat.controller'
 import { UserModel } from '../models/user.model'
 
@@ -52,79 +51,82 @@ export class UserController {
 
   //
 
-  static notifyLogin = ({
-    socket,
-    id,
-    type
-  }: {
-    socket: Socket
-    id: string
-    type: number
-  }) => {
+  static notifyLogin = ({ id }: { id: string }) => {
     const activeUsers = UserModel.allActiveUsers()
     const user = UserModel.find({ id })
-    socket.emit('server:login_active_users', activeUsers)
-    if (type !== 1) {
-      socket.broadcast.emit('server:user_connected', user)
-    }
+    return { activeUsers, user }
   }
 
   //
 
-  static disNotify = ({ socket }: { socket: Socket }): boolean => {
+  static disNotify = ({
+    name
+  }: {
+    name: string
+  }): { endChat: boolean; userNoti: object } => {
     //
-    const user = UserModel.findByName({ name: socket.handshake.auth.username })
+    const user = UserModel.findByName({ name })
     const activeUsers = UserModel.allActiveUsers()
 
+    let notify: { endChat: boolean; userNoti: object } = {
+      endChat: false,
+      userNoti: {}
+    }
     // finish chat?
     if (activeUsers.length === 0) {
+      // 0 active users
       try {
         ChatController.closeChat()
         UserController.deleteAll()
-        return true
+        notify.endChat = true
       } catch (e: unknown) {
         let m
         if (e instanceof Error) m = e.message
         throw new Error('unable to close chat: ' + m)
       }
     } else {
-      socket.broadcast.emit('server:user_disconnected', user)
-      return false
+      // There are active users
+      notify.endChat = false
+      notify.userNoti = user
     }
+    return notify
   }
 
   //
 
-  static disReaload = async ({
-    socket
+  static disReload = async ({
+    name
   }: {
-    socket: Socket
-  }): Promise<boolean> => {
-    const status = await new Promise<boolean>((resolve) => {
-      setTimeout(() => {
-        // verify status
-        const user = UserModel.findByName({
-          name: socket.handshake.auth.username
-        })
-        if (user && user.status === 0) {
-          // Notify disconnection or close chat
-          resolve(UserController.disNotify({ socket }))
-        } else {
-          resolve(false)
-        }
-      }, 1000)
-    })
+    name: string
+  }): Promise<{ endChat: boolean; userNoti: object }> => {
+    const status = await new Promise<{ endChat: boolean; userNoti: object }>(
+      (resolve) => {
+        setTimeout(() => {
+          const user = UserModel.findByName({ name })
+
+          let notify: { endChat: boolean; userNoti: object } = {
+            endChat: false,
+            userNoti: {}
+          }
+          // verify status
+          if (user && user.status === 0) {
+            // Notify disconnection or close chat
+            const noti = UserController.disNotify({ name })
+            notify.endChat = noti.endChat
+            notify.userNoti = noti.userNoti
+          }
+          resolve(notify)
+        }, 1000)
+      }
+    )
     return status
   }
 
   //
 
-  static logout = ({ socket }: { socket: Socket }) => {
+  static logout = ({ name }: { name: string }) => {
     try {
-      UserModel.updateStatusByName({
-        name: socket.handshake.auth.username,
-        status: 0
-      })
+      UserModel.updateStatusByName({ name, status: 0 })
     } catch (e: unknown) {
       let m
       if (e instanceof Error) m = e.message
