@@ -1,0 +1,198 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+main {
+  display: flex;
+  margin: auto;
+  max-width: 600px;
+  min-width: 300px;
+  height: 100vh;
+}
+
+.principal {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 1em 0;
+}
+
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0.5em;
+}
+
+li {
+  margin: 0.3em;
+}
+
+.users {
+  width: 36%;
+  margin: 0.8%;
+}
+
+.formlogin {
+  display: grid;
+  justify-items: center;
+  background-color: rgb(40, 42, 45);
+  border: 1px solid;
+  border-radius: 0.6em;
+  padding: 0.5em;
+}
+
+button {
+  cursor: pointer;
+}
+
+.formlogin > input {
+  width: 100%;
+  height: 2em;
+  border: 1px solid rgb(0, 110, 255);
+  border-radius: 7px;
+  outline: none;
+  background-color: rgb(50, 40, 40);
+}
+
+.formlogin > input:valid {
+  background-color: rgb(15, 16, 15);
+}
+
+.formlogin > input:hover {
+  border: 1px solid rgb(59, 140, 246);
+}
+.formlogin > input:focus {
+  border: 1px solid rgb(91, 159, 243);
+}
+
+.formlogin > button {
+  background-color: rgb(15, 121, 34);
+  margin: 4px;
+  border: 1px solid white;
+  border-radius: 0.5em;
+  padding: 6px;
+}
+
+.formlogin > button:hover {
+  background-color: rgb(16, 97, 31);
+}
+
+.div-show-users {
+  height: 100%;
+}
+
+.listusers {
+  border: 1px solid;
+  border-radius: 0.6em 0 0 0.6em;
+  overflow-y: scroll;
+  max-height: 100%;
+}
+
+.btn-logout {
+  background-color: red;
+  margin-left: 5px;
+}
+
+.btn-logout:hover {
+  background-color: rgb(195, 1, 1);
+}
+
+.chat {
+  width: 56%;
+  margin: 0.8%;
+  border: 1px solid;
+  border-radius: 0.6em;
+  overflow: hidden;
+}
+
+.div-show-messages {
+  height: 100%;
+}
+
+.messages {
+  overflow-y: scroll;
+  width: 100%;
+  max-height: 100%;
+  margin: auto;
+  padding-bottom: 36px;
+  display: grid;
+}
+
+.message {
+  border: 1px solid rgb(16, 68, 28);
+  background-color: rgb(34, 33, 33);
+  border-radius: 0.6em;
+  padding: 5px;
+  max-width: 80%;
+  min-width: 25%;
+  display: grid;
+}
+
+.in {
+  justify-self: start;
+}
+
+.out {
+  justify-self: end;
+}
+
+.message > span {
+  font-size: small;
+  font-style: italic;
+}
+
+.message > small {
+  font-size: 0.7em;
+  justify-self: end;
+}
+
+.message > p {
+  padding: 0;
+  margin: 0;
+}
+
+.formchat {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  height: 40px;
+  padding: 4px;
+  bottom: 40px;
+  width: 94%;
+}
+
+.formchat > input {
+  border: 1px solid rgb(22, 245, 234);
+  width: 80%;
+  border-radius: 1.5em;
+  padding: 0 0.9em;
+  outline: none;
+}
+
+.formchat > input:focus {
+  border: 1px solid rgb(22, 160, 245);
+}
+
+.formchat > button {
+  width: 20%;
+  margin: 0 4px;
+  border: 0;
+  background-color: rgb(0, 115, 255);
+  border-radius: 0.5em;
+  overflow: hidden;
+}
+
+.formchat > button:hover {
+  background-color: rgb(22, 88, 168);
+}

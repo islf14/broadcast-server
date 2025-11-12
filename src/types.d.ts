@@ -57,3 +57,18 @@ export type Name = Pick<UserDB, 'name'>
 export type NaSt = Omit<UserDB, 'id'>
 
 export type IdSt = Omit<UserDB, 'name'>
+
+// for cors
+
+export type StaticOrigin =
+  | boolean
+  | string
+  | RegExp
+  | Array<boolean | string | RegExp>
+
+// Rate limit
+
+export type Rate = {
+  times: number
+  minutes: number
+}

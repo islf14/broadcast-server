@@ -61,6 +61,8 @@ export class MessageModel {
       let m
       if (e instanceof Error) m = e.message
       throw new Error('can not insert: ' + m)
+    } finally {
+      db.close()
     }
   }
 
@@ -76,11 +78,13 @@ export class MessageModel {
       throw new Error('can not connect: ' + m)
     }
 
-    return db
+    const result = db
       .prepare(
         'SELECT message, username, ord, chat_id, createdAt as date FROM messages WHERE chat_id = ? AND ord > ?'
       )
       .all(id, ord) as Array<MessageDB>
+    db.close()
+    return result
   }
 
   //

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.ico" />
+    <title>Chat Client</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <div class="principal">
+        <section class="users">
+          <div id="divlogin" style="display: block">
+            <form id="formlogin" class="formlogin" action="">
+              <input
+                id="name"
+                type="text"
+                placeholder="Name"
+                autocomplete="off"
+                minlength="2"
+                maxlength="30"
+              />
+              <span></span>
+              <button type="submit">Enter</button>
+            </form>
+          </div>
+          <div id="divusers" class="div-show-users" style="display: none">
+            <ul class="listusers"></ul>
+          </div>
+        </section>
+        <section id="chat" class="chat" style="display: none">
+          <div class="div-show-messages">
+            <ul class="messages"></ul>
+          </div>
+          <form id="formchat" class="formchat" action="">
+            <input
+              id="newmessage"
+              type="text"
+              placeholder="Type a message"
+              autocomplete="off"
+            />
+            <button type="submit">Send</button>
+          </form>
+        </section>
+      </div>
+    </main>
+    <script src="./script.js"></script>
+  </body>
+</html>

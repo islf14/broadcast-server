@@ -36,9 +36,11 @@ export class UserModel {
       throw new Error('can not connect: ' + m)
     }
 
-    return db
+    const result = db
       .prepare('SELECT * FROM users WHERE status = ?')
       .all(1) as Array<UserDB>
+    db.close()
+    return result
   }
 
   //
@@ -53,7 +55,9 @@ export class UserModel {
       throw new Error('can not connect: ' + m)
     }
 
-    return db.prepare('SELECT * FROM users').all() as Array<UserDB>
+    const result = db.prepare('SELECT * FROM users').all() as Array<UserDB>
+    db.close()
+    return result
   }
 
   //
@@ -78,6 +82,8 @@ export class UserModel {
       let m
       if (e instanceof Error) m = e.message
       throw new Error('can not insert: ' + m)
+    } finally {
+      db.close()
     }
   }
 
@@ -93,7 +99,11 @@ export class UserModel {
       throw new Error('can not connect: ' + m)
     }
 
-    return db.prepare('SELECT * FROM users WHERE id = ?').get(id) as UserDB
+    const result = db
+      .prepare('SELECT * FROM users WHERE id = ?')
+      .get(id) as UserDB
+    db.close()
+    return result
   }
 
   static findByName = ({ name }: Name) => {
@@ -106,7 +116,11 @@ export class UserModel {
       throw new Error('can not connect: ' + m)
     }
 
-    return db.prepare('SELECT * FROM users WHERE name = ?').get(name) as UserDB
+    const result = db
+      .prepare('SELECT * FROM users WHERE name = ?')
+      .get(name) as UserDB
+    db.close()
+    return result
   }
 
   //
@@ -121,9 +135,11 @@ export class UserModel {
       throw new Error('can not connect: ' + m)
     }
 
-    return db
+    const result = db
       .prepare('SELECT * FROM users WHERE name = ? AND status = ?')
       .get(name, status) as UserDB
+    db.close()
+    return result
   }
 
   //
@@ -148,6 +164,8 @@ export class UserModel {
       let m
       if (e instanceof Error) m = e.message
       throw new Error('can not update: ' + m)
+    } finally {
+      db.close()
     }
   }
 
@@ -169,6 +187,8 @@ export class UserModel {
       let m
       if (e instanceof Error) m = e.message
       throw new Error('can not update: ' + m)
+    } finally {
+      db.close()
     }
   }
 
@@ -190,6 +210,8 @@ export class UserModel {
       let m
       if (e instanceof Error) m = e.message
       throw new Error('can not delete: ' + m)
+    } finally {
+      db.close()
     }
   }
 
@@ -209,6 +231,8 @@ export class UserModel {
       let m
       if (e instanceof Error) m = e.message
       throw new Error('can not delete all: ' + m)
+    } finally {
+      db.close()
     }
   }
 

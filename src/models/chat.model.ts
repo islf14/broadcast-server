@@ -46,6 +46,8 @@ export class ChatModel {
       let m
       if (e instanceof Error) m = e.message
       throw new Error('Error newChat: ' + m)
+    } finally {
+      db.close()
     }
   }
 
@@ -70,6 +72,8 @@ export class ChatModel {
       let m
       if (e instanceof Error) m = e.message
       throw new Error('Error closing chat: ' + m)
+    } finally {
+      db.close()
     }
   }
 
@@ -85,9 +89,13 @@ export class ChatModel {
       throw new Error('can not connect: ' + m)
     }
 
-    return db.prepare('SELECT * FROM chats WHERE status = ?').get(status) as {
+    const result = db
+      .prepare('SELECT * FROM chats WHERE status = ?')
+      .get(status) as {
       id: string
     }
+    db.close()
+    return result
   }
 
   //
