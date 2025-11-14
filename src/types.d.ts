@@ -8,7 +8,7 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
-  'user:vflogin': (type: number) => void
+  'user:vflogin': () => void
   'user:login': (name: string) => void
   'user:message': (msg: string) => void
   'user:clean': () => void
@@ -25,6 +25,7 @@ export type UpdateChat = {
 
 export type StatusChat = Pick<stChat, 'status'>
 
+// MessageModel - create
 export type NewMessage = {
   message: string
   username: string
@@ -71,4 +72,14 @@ export type StaticOrigin =
 export type Rate = {
   times: number
   minutes: number
+}
+
+// UserController
+/// Login,Vlogin,Logout
+export type Name = { name: string }
+
+/// disNotify, disReload
+export type EndChatUser = {
+  endChat: boolean
+  userNoti: object
 }

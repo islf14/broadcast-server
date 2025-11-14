@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { ChatController } from './chat.controller.js'
 import { UserModel } from '../models/user.model.js'
+import { Name, UserDB } from '../types.js'
 
 export class UserController {
   ////
@@ -12,7 +13,7 @@ export class UserController {
 
   //
 
-  static login = ({ name }: { name: string }) => {
+  static login = ({ name }: Name) => {
     const exist = UserModel.findByName({ name })
     if (exist) {
       throw new Error('User already exists')
@@ -27,9 +28,9 @@ export class UserController {
     }
   }
 
-  //
+  // Return the user id if it exists
 
-  static vlogin = ({ name }: { name: string }) => {
+  static vlogin = ({ name }: Name): string | undefined => {
     const user = UserModel.findByNameStatus({
       name,
       status: 0
@@ -37,7 +38,9 @@ export class UserController {
 
     if (user) {
       try {
+        // change status to active
         UserModel.updateStatus({ id: user.id, status: 1 })
+        console.log('changing status to 1')
         return user.id
       } catch (e: unknown) {
         let m
@@ -45,11 +48,11 @@ export class UserController {
         throw new Error(m)
       }
     } else {
-      return user
+      return undefined
     }
   }
 
-  //
+  // Return active users and the user
 
   static notifyLogin = ({ id }: { id: string }) => {
     const activeUsers = UserModel.allActiveUsers()
@@ -58,74 +61,63 @@ export class UserController {
   }
 
   //
+  // Return the user if there are users to notify
 
-  static disNotify = ({
-    name
-  }: {
-    name: string
-  }): { endChat: boolean; userNoti: object } => {
+  static userDisconnect = ({ name }: Name): UserDB | undefined => {
     //
     const user = UserModel.findByName({ name })
     const activeUsers = UserModel.allActiveUsers()
-
-    let notify: { endChat: boolean; userNoti: object } = {
-      endChat: false,
-      userNoti: {}
+    if (activeUsers.length !== 0) {
+      return user
     }
-    // finish chat?
-    if (activeUsers.length === 0) {
-      // 0 active users
-      try {
-        ChatController.closeChat()
-        UserController.deleteAll()
-        notify.endChat = true
-      } catch (e: unknown) {
-        let m
-        if (e instanceof Error) m = e.message
-        throw new Error('unable to close chat: ' + m)
-      }
-    } else {
-      // There are active users
-      notify.endChat = false
-      notify.userNoti = user
-    }
-    return notify
+    return undefined
   }
 
-  //
+  // Close Chat if is necessary
 
-  static disReload = async ({
-    name
-  }: {
-    name: string
-  }): Promise<{ endChat: boolean; userNoti: object }> => {
-    const status = await new Promise<{ endChat: boolean; userNoti: object }>(
-      (resolve) => {
-        setTimeout(() => {
-          const user = UserModel.findByName({ name })
+  static closeChat = async (): Promise<boolean> => {
+    const chatClosed = await new Promise<boolean>((resolve) => {
+      setTimeout(() => {
+        const activeUsers = UserModel.allActiveUsers()
 
-          let notify: { endChat: boolean; userNoti: object } = {
-            endChat: false,
-            userNoti: {}
+        // finish chat?
+        console.log('after 5 seconds')
+        if (activeUsers.length === 0) {
+          // 0 active users
+          try {
+            ChatController.closeChat()
+            UserController.deleteAll()
+            resolve(true)
+          } catch (e: unknown) {
+            let m
+            if (e instanceof Error) m = e.message
+            throw new Error('unable to close chat: ' + m)
           }
-          // verify status
-          if (user && user.status === 0) {
-            // Notify disconnection or close chat
-            const noti = UserController.disNotify({ name })
-            notify.endChat = noti.endChat
-            notify.userNoti = noti.userNoti
-          }
-          resolve(notify)
-        }, 1000)
-      }
-    )
-    return status
+        } else resolve(false)
+      }, 5000)
+    })
+    return chatClosed
   }
 
-  //
+  // If the user reloads the page, try to prevent the notification
 
-  static logout = ({ name }: { name: string }) => {
+  static userAfter = async ({ name }: Name): Promise<UserDB | undefined> => {
+    const userAfter = await new Promise<UserDB | undefined>((resolve) => {
+      setTimeout(() => {
+        // after 3 second
+        console.log('after 2 seconds')
+        const user = UserModel.findByName({ name })
+        resolve(user)
+      }, 3000)
+    })
+    return userAfter
+  }
+
+  // Changing status to inactive
+
+  static logout = ({ name }: Name): void => {
     try {
+      console.log('changing status to 0')
       UserModel.updateStatusByName({ name, status: 0 })
     } catch (e: unknown) {
       let m

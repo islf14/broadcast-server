@@ -12,7 +12,8 @@ const socket = io({
 socket.on('connect', () => {
   const username = localStorage.getItem(u_bc)
   if (username) {
-    socket.emit('user:vflogin', window.performance.navigation.type)
+    // new url, reload, redirect
+    socket.emit('user:vflogin')
   } else {
     modelogin()
     if (socket.auth.username) {
@@ -22,6 +23,7 @@ socket.on('connect', () => {
   }
 })
 
+// All receive the new message
 socket.on('server:message', (message) => {
   if (
     localStorage.getItem(u_bc) !== null &&
@@ -54,6 +56,8 @@ socket.on('server:message', (message) => {
   }
 })
 
+// The user receives all messages (or missing messages)
+// in the current chat
 socket.on('server:login_messages', (messages) => {
   const ulchat = $('#chat ul')
   messages.forEach((message) => {
@@ -84,6 +88,7 @@ socket.on('server:login_messages', (messages) => {
   })
 })
 
+// The user receives the active users
 socket.on('server:login_active_users', (users) => {
   socket.auth.username = localStorage.getItem(u_bc)
   $('#name').value = ''
@@ -117,6 +122,7 @@ socket.on('server:login_active_users', (users) => {
   })
 })
 
+// Receive a connection notification from another user
 socket.on('server:user_connected', (user) => {
   if (
     localStorage.getItem(u_bc) !== null &&
@@ -140,6 +146,7 @@ socket.on('server:user_connected', (user) => {
   }
 })
 
+// Receive a disconnection notification from another user
 socket.on('server:user_disconnected', (user) => {
   if (
     localStorage.getItem(u_bc) !== null &&
@@ -155,6 +162,7 @@ socket.on('server:user_disconnected', (user) => {
   }
 })
 
+// The user receive a login error notification
 socket.on('server:login_error', (msg) => {
   localStorage.removeItem(u_bc)
   modelogin()
@@ -162,6 +170,8 @@ socket.on('server:login_error', (msg) => {
   sp.innerText = msg
   sp.style.color = 'red'
 })
+
+// end of socket
 
 //  L O G I N
 $('#formlogin').addEventListener('submit', (e) => {
@@ -193,6 +203,7 @@ $('#formchat').addEventListener('submit', (e) => {
   }
 })
 
+// It is used in the logout button
 function logout() {
   localStorage.removeItem(u_bc)
   socket.auth.countMessages = 0

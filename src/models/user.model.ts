@@ -26,7 +26,7 @@ function connectUsers() {
 export class UserModel {
   //
 
-  static allActiveUsers = () => {
+  static allActiveUsers = (): Array<UserDB> => {
     let db
     try {
       db = connectUsers()
@@ -106,7 +106,7 @@ export class UserModel {
     return result
   }
 
-  static findByName = ({ name }: Name) => {
+  static findByName = ({ name }: Name): UserDB | undefined => {
     let db
     try {
       db = connectUsers()
@@ -125,7 +125,7 @@ export class UserModel {
 
   //
 
-  static findByNameStatus = ({ name, status }: NaSt) => {
+  static findByNameStatus = ({ name, status }: NaSt): UserDB | undefined => {
     let db
     try {
       db = connectUsers()
