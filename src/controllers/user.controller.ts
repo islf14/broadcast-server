@@ -13,7 +13,7 @@ export class UserController {
 
   //
 
-  static login = ({ name }: Name) => {
+  static login = ({ name }: Name): string => {
     const exist = UserModel.findByName({ name })
     if (exist) {
       throw new Error('User already exists')
@@ -40,7 +40,6 @@ export class UserController {
       try {
         // change status to active
         UserModel.updateStatus({ id: user.id, status: 1 })
-        console.log('changing status to 1')
         return user.id
       } catch (e: unknown) {
         let m
@@ -52,12 +51,18 @@ export class UserController {
     }
   }
 
+  // return active users
+
+  static getActiveUsers(): Array<UserDB> {
+    const activeUsers = UserModel.allActiveUsers()
+    return activeUsers
+  }
+
   // Return active users and the user
 
-  static notifyLogin = ({ id }: { id: string }) => {
-    const activeUsers = UserModel.allActiveUsers()
+  static getUser = ({ id }: { id: string }): UserDB => {
     const user = UserModel.find({ id })
-    return { activeUsers, user }
+    return user
   }
 
   //
@@ -81,7 +86,6 @@ export class UserController {
         const activeUsers = UserModel.allActiveUsers()
 
         // finish chat?
-        console.log('after 5 seconds')
         if (activeUsers.length === 0) {
           // 0 active users
           try {
@@ -94,7 +98,7 @@ export class UserController {
             throw new Error('unable to close chat: ' + m)
           }
         } else resolve(false)
-      }, 5000)
+      }, 10000)
     })
     return chatClosed
   }
@@ -105,7 +109,6 @@ export class UserController {
     const userAfter = await new Promise<UserDB | undefined>((resolve) => {
       setTimeout(() => {
         // after 3 second
-        console.log('after 2 seconds')
         const user = UserModel.findByName({ name })
         resolve(user)
       }, 3000)
@@ -117,7 +120,6 @@ export class UserController {
 
   static logout = ({ name }: Name): void => {
     try {
-      console.log('changing status to 0')
       UserModel.updateStatusByName({ name, status: 0 })
     } catch (e: unknown) {
       let m
@@ -128,7 +130,7 @@ export class UserController {
 
   //
 
-  static logoutAll = () => {
+  static logoutAll = (): void => {
     const activeUsers = UserModel.allActiveUsers()
     activeUsers.forEach((user) => {
       UserModel.updateStatus({ id: user.id, status: 0 })
@@ -137,7 +139,7 @@ export class UserController {
 
   //
 
-  static deleteAll = () => {
+  static deleteAll = (): void => {
     UserModel.deleteAll()
   }
 

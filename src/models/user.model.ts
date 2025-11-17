@@ -45,7 +45,7 @@ export class UserModel {
 
   //
 
-  static allUsers = () => {
+  static allUsers = (): Array<UserDB> => {
     let db
     try {
       db = connectUsers()
@@ -62,7 +62,7 @@ export class UserModel {
 
   //
 
-  static create = ({ name }: Name) => {
+  static create = ({ name }: Name): string => {
     let db
     try {
       db = connectUsers()
@@ -89,7 +89,7 @@ export class UserModel {
 
   //
 
-  static find = ({ id }: Id) => {
+  static find = ({ id }: Id): UserDB => {
     let db
     try {
       db = connectUsers()
@@ -144,7 +144,7 @@ export class UserModel {
 
   //
 
-  static updateStatus = ({ id, status }: IdSt) => {
+  static updateStatus = ({ id, status }: IdSt): void => {
     let db
     try {
       db = connectUsers()
@@ -169,7 +169,7 @@ export class UserModel {
     }
   }
 
-  static updateStatusByName = ({ name, status }: NaSt) => {
+  static updateStatusByName = ({ name, status }: NaSt): void => {
     let db
     try {
       db = connectUsers()
@@ -194,7 +194,7 @@ export class UserModel {
 
   //
 
-  static delete = ({ id }: Id) => {
+  static delete = ({ id }: Id): void => {
     let db
     try {
       db = connectUsers()
@@ -215,7 +215,7 @@ export class UserModel {
     }
   }
 
-  static deleteAll = () => {
+  static deleteAll = (): void => {
     let db
     try {
       db = connectUsers()

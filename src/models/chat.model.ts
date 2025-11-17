@@ -1,6 +1,6 @@
 import Database from 'libsql'
 import { v4 as uuidv4 } from 'uuid'
-import { StatusChat, UpdateChat } from '../types.js'
+import { ChatDB, StatusChat, UpdChat } from '../types.js'
 
 function connectChats() {
   const db = new Database('./data.db')
@@ -26,7 +26,7 @@ function connectChats() {
 export class ChatModel {
   //
 
-  static create = () => {
+  static create = (): string => {
     let db
     try {
       db = connectChats()
@@ -37,11 +37,11 @@ export class ChatModel {
     }
 
     try {
-      let idChat = uuidv4()
+      let chatId = uuidv4()
       db.prepare(
         'INSERT INTO chats (id, status, createdAt, updatedAt) VALUES (?, ?, ?, ?)'
-      ).get(idChat, 1, new Date().toISOString(), new Date().toISOString())
-      return idChat
+      ).get(chatId, 1, new Date().toISOString(), new Date().toISOString())
+      return chatId
     } catch (e: unknown) {
       let m
       if (e instanceof Error) m = e.message
@@ -53,7 +53,7 @@ export class ChatModel {
 
   //
 
-  static updateStatusByStatus = ({ status, newStatus }: UpdateChat) => {
+  static updateStatusByStatus = ({ status, nStatus }: UpdChat): boolean => {
     let db
     try {
       db = connectChats()
@@ -66,7 +66,7 @@ export class ChatModel {
     try {
       db.prepare(
         'UPDATE chats SET status = ?, updatedAt = ? WHERE status = ?'
-      ).get(newStatus, new Date().toISOString(), status)
+      ).get(nStatus, new Date().toISOString(), status)
       return true
     } catch (e: unknown) {
       let m
@@ -77,9 +77,9 @@ export class ChatModel {
     }
   }
 
-  //
+  // ChatController - activeChat
 
-  static findByStatus = ({ status }: StatusChat) => {
+  static findByStatus = ({ status }: StatusChat): ChatDB => {
     let db
     try {
       db = connectChats()
@@ -91,9 +91,7 @@ export class ChatModel {
 
     const result = db
       .prepare('SELECT * FROM chats WHERE status = ?')
-      .get(status) as {
-      id: string
-    }
+      .get(status) as ChatDB
     db.close()
     return result
   }

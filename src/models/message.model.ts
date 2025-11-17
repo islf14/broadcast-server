@@ -12,7 +12,7 @@ function connectMessages() {
       .get()
     if (tb === undefined) {
       db.exec(
-        'CREATE TABLE messages (id BLOB PRIMARY KEY, message TEXT, username TEXT, ord NUMERIC, chat_id BLOB, createdAt TEXT, updatedAt TEXT)'
+        'CREATE TABLE messages (id BLOB PRIMARY KEY, message TEXT, username TEXT, ord NUMERIC, chatId BLOB, createdAt TEXT, updatedAt TEXT)'
       )
     }
     return db
@@ -26,7 +26,7 @@ function connectMessages() {
 export class MessageModel {
   //
 
-  static create = ({ message, username, idChat }: NewMessage) => {
+  static create = ({ message, username, chatId }: NewMessage): MessageDB => {
     let db
     try {
       db = connectMessages()
@@ -38,23 +38,23 @@ export class MessageModel {
 
     try {
       const order = db
-        .prepare('SELECT MAX(ord) as max FROM messages WHERE chat_id = ?')
-        .get(idChat) as { max: number }
+        .prepare('SELECT MAX(ord) as max FROM messages WHERE chatId = ?')
+        .get(chatId) as { max: number }
       const id = uuidv4()
       db.prepare(
-        'INSERT INTO messages (id, message, username, ord, chat_id, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO messages (id, message, username, ord, chatId, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)'
       ).get(
         id,
         message,
         username,
         order.max ? order.max + 1 : 1,
-        idChat,
+        chatId,
         new Date().toISOString(),
         new Date().toISOString()
       )
       return db
         .prepare(
-          'SELECT message, username, ord, chat_id, createdAt as date FROM messages WHERE id = ?'
+          'SELECT message, username, ord, chatId, createdAt as date FROM messages WHERE id = ?'
         )
         .get(id) as MessageDB
     } catch (e: unknown) {
@@ -68,7 +68,10 @@ export class MessageModel {
 
   //
 
-  static messagesByChatOrder = ({ id, ord }: Messages) => {
+  static messagesByChatOrder = ({
+    chatId,
+    ord
+  }: Messages): Array<MessageDB> => {
     let db
     try {
       db = connectMessages()
@@ -80,9 +83,9 @@ export class MessageModel {
 
     const result = db
       .prepare(
-        'SELECT message, username, ord, chat_id, createdAt as date FROM messages WHERE chat_id = ? AND ord > ?'
+        'SELECT message, username, ord, chatId, createdAt as date FROM messages WHERE chatId = ? AND ord > ?'
       )
-      .all(id, ord) as Array<MessageDB>
+      .all(chatId, ord) as Array<MessageDB>
     db.close()
     return result
   }

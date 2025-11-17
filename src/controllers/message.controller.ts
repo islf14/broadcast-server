@@ -1,22 +1,15 @@
 import { MessageModel } from '../models/message.model.js'
+import { MessageDB, Messages, NewMessage } from '../types.js'
 
 export class MessageController {
   //
 
-  static create = ({
-    username,
-    msg,
-    idChat
-  }: {
-    username: string
-    msg: string
-    idChat: string
-  }) => {
+  static create = ({ message, username, chatId }: NewMessage): MessageDB => {
     try {
       return MessageModel.create({
-        message: msg,
+        message,
         username,
-        idChat
+        chatId
       })
     } catch (e: unknown) {
       let m
@@ -27,16 +20,10 @@ export class MessageController {
 
   //
 
-  static loadMessages = ({
-    idChat,
-    count
-  }: {
-    idChat: string
-    count: number
-  }) => {
+  static loadMessages = ({ chatId, ord }: Messages): Array<MessageDB> => {
     return MessageModel.messagesByChatOrder({
-      id: idChat,
-      ord: count
+      chatId,
+      ord
     })
   }
 
