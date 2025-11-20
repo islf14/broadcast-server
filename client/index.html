@@ -9,28 +9,43 @@
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
+    <div id="loading" class="text-center mt-2" style="display: none">
+      <h2>Loading...</h2>
+    </div>
     <main>
-      <div class="principal">
-        <section class="users">
-          <div id="divlogin" style="display: block">
-            <form id="formlogin" class="formlogin" action="">
-              <input
-                id="name"
-                type="text"
-                placeholder="Name"
-                autocomplete="off"
-                minlength="2"
-                maxlength="30"
-              />
-              <span></span>
-              <button type="submit">Enter</button>
-            </form>
-          </div>
-          <div id="divusers" class="div-show-users" style="display: none">
-            <ul class="listusers"></ul>
+      <div class="principal h-sm:m-2-1">
+        <section id="login" class="sm:m-.8%" style="display: none">
+          <form id="formlogin" class="formlogin" action="">
+            <input
+              id="name"
+              type="text"
+              placeholder="Name"
+              autocomplete="off"
+              minlength="2"
+              maxlength="30"
+            />
+            <span></span>
+            <button type="submit">Enter</button>
+          </form>
+        </section>
+        <section
+          id="users"
+          class="users sm:w-36% sm:static sm:h-auto sm:m-.8%"
+          style="display: block"
+        >
+          <div class="sec-users sm:m-auto sm:trl-0 sm:static sm:h-full">
+            <button id="btnUsers" class="btn-users sm:hidden">Users</button>
+            <div
+              id="floatlist"
+              class="floatlist sm:maxh-full sm:trl-0 sm:static sm:w-full sm:h-full sm:flex hidden-menu sm:trf-0"
+            >
+              <div class="content">
+                <ul class="listusers"></ul>
+              </div>
+            </div>
           </div>
         </section>
-        <section id="chat" class="chat" style="display: none">
+        <section id="chat" class="chat sm:w-64%" style="display: block">
           <div class="div-show-messages">
             <ul class="messages"></ul>
           </div>

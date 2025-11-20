@@ -94,7 +94,7 @@ socket.on('server:login_active_users', (users) => {
   $('#name').value = ''
   modechat()
   const username = localStorage.getItem(u_bc)
-  const ulusers = $('#divusers ul')
+  const ulusers = $('#users ul')
   ulusers.innerHTML = ''
 
   users.forEach((element) => {
@@ -128,8 +128,8 @@ socket.on('server:user_connected', (user) => {
     localStorage.getItem(u_bc) !== null &&
     localStorage.getItem(u_bc) === socket.auth.username
   ) {
-    const ulusers = $('#divusers ul')
-    const liUsers = document.querySelectorAll('#divusers ul li')
+    const ulusers = $('#users ul')
+    const liUsers = document.querySelectorAll('#users ul li')
     let add = true
     liUsers.forEach((item) => {
       if (item.children[0].textContent === user.name) {
@@ -152,8 +152,8 @@ socket.on('server:user_disconnected', (user) => {
     localStorage.getItem(u_bc) !== null &&
     localStorage.getItem(u_bc) === socket.auth.username
   ) {
-    const ulusers = $('#divusers ul')
-    const liUsers = document.querySelectorAll('#divusers ul li')
+    const ulusers = $('#users ul')
+    const liUsers = document.querySelectorAll('#users ul li')
     liUsers.forEach((item) => {
       if (item.children[0].textContent === user.name) {
         ulusers.removeChild(item)
@@ -215,15 +215,29 @@ function logout() {
 }
 
 function modelogin() {
-  $('#divlogin').style.display = 'block'
-  $('#divusers').style.display = 'none'
+  $('#loading').style.display = 'none'
+  $('#login').style.display = 'block'
+  $('#users').style.display = 'none'
   $('#chat').style.display = 'none'
+  $('#name').focus()
 }
 
 function modechat() {
-  $('#divlogin').style.display = 'none'
-  $('#divusers').style.display = 'block'
+  $('#loading').style.display = 'none'
+  $('#login').style.display = 'none'
+  $('#users').style.display = 'block'
   $('#chat').style.display = 'block'
+  $('#newmessage').focus()
 }
 
+// Button users
+$('#btnUsers').addEventListener('click', (e) => {
+  e.preventDefault()
+  const classes = Object.values($('#floatlist').classList)
+  if (!classes.includes('hidden-menu')) {
+    $('#floatlist').classList.add('hidden-menu')
+  } else {
+    $('#floatlist').classList.remove('hidden-menu')
+  }
+})
 //
