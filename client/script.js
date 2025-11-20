@@ -99,6 +99,7 @@ socket.on('server:login_active_users', (users) => {
 
   users.forEach((element) => {
     if (element.name === username) {
+      // Add the user to the begining of the list
       const li = document.createElement('li')
       const span = document.createElement('span')
       const button = document.createElement('button')
@@ -113,6 +114,7 @@ socket.on('server:login_active_users', (users) => {
         logout()
       })
     } else {
+      // Add other users
       const li = document.createElement('li')
       const span = document.createElement('span')
       span.textContent = element.name
@@ -220,6 +222,7 @@ function modelogin() {
   $('#users').style.display = 'none'
   $('#chat').style.display = 'none'
   $('#name').focus()
+  $('#floatlist').classList.add('hidden-menu')
 }
 
 function modechat() {
@@ -235,9 +238,26 @@ $('#btnUsers').addEventListener('click', (e) => {
   e.preventDefault()
   const classes = Object.values($('#floatlist').classList)
   if (!classes.includes('hidden-menu')) {
+    // shown
     $('#floatlist').classList.add('hidden-menu')
+    document.removeEventListener('mousedown', handleListener)
   } else {
+    // hidden
     $('#floatlist').classList.remove('hidden-menu')
+    // add listener to close the menu
+    document.addEventListener('mousedown', handleListener)
   }
 })
+
+function handleListener(e) {
+  // if the click is made outside of list
+  if (
+    !$('#listUsers').contains(e.target) &&
+    !$('#btnUsers').contains(e.target)
+  ) {
+    $('#floatlist').classList.add('hidden-menu')
+    document.removeEventListener('mousedown', handleListener)
+  }
+}
+
 //

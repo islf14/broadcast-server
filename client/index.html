@@ -9,12 +9,12 @@
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <div id="loading" class="text-center mt-2" style="display: none">
+    <div id="loading" class="text-center mt-2" style="display: block">
       <h2>Loading...</h2>
     </div>
     <main>
       <div class="principal h-sm:m-2-1">
-        <section id="login" class="sm:m-.8%" style="display: none">
+        <section id="login" class="m-.8%" style="display: none">
           <form id="formlogin" class="formlogin" action="">
             <input
               id="name"
@@ -31,7 +31,7 @@
         <section
           id="users"
           class="users sm:w-36% sm:static sm:h-auto sm:m-.8%"
-          style="display: block"
+          style="display: none"
         >
           <div class="sec-users sm:m-auto sm:trl-0 sm:static sm:h-full">
             <button id="btnUsers" class="btn-users sm:hidden">Users</button>
@@ -39,13 +39,13 @@
               id="floatlist"
               class="floatlist sm:maxh-full sm:trl-0 sm:static sm:w-full sm:h-full sm:flex hidden-menu sm:trf-0"
             >
-              <div class="content">
+              <div id="listUsers" class="content">
                 <ul class="listusers"></ul>
               </div>
             </div>
           </div>
         </section>
-        <section id="chat" class="chat sm:w-64%" style="display: block">
+        <section id="chat" class="chat sm:w-64%" style="display: none">
           <div class="div-show-messages">
             <ul class="messages"></ul>
           </div>

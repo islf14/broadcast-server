@@ -35,7 +35,7 @@ export function createIo(httpServer: httpServer): Server {
   } catch (e: unknown) {
     let m
     if (e instanceof Error) m = e.message
-    console.log('Error: ', m)
+    console.error(new Date().toLocaleString() + ' =>', m)
   }
 
   io.on('connection', (socket) => {
@@ -75,7 +75,7 @@ export function createIo(httpServer: httpServer): Server {
         if (e instanceof Error) m = e.message
         // Notify error to the user
         socket.emit('server:login_error', 'Try again or with a different name')
-        console.log('Error: ', m)
+        console.error(new Date().toLocaleString() + ' =>', m)
       }
     })
 
@@ -109,7 +109,7 @@ export function createIo(httpServer: httpServer): Server {
       } catch (e: unknown) {
         let m
         if (e instanceof Error) m = e.message
-        console.log('Error: ', m)
+        console.error(new Date().toLocaleString() + ' =>', m)
         socket.emit('server:login_error', 'Error, login again.')
       }
     })
@@ -160,7 +160,7 @@ export function createIo(httpServer: httpServer): Server {
       } catch (e: unknown) {
         let m
         if (e instanceof Error) m = e.message
-        console.log('Error uD: ', m)
+        console.error(new Date().toLocaleString() + ' =>', m)
       }
 
       if (userNotify) {
@@ -177,7 +177,7 @@ export function createIo(httpServer: httpServer): Server {
         } catch (e: unknown) {
           let m
           if (e instanceof Error) m = e.message
-          console.log('Error: ', m)
+          console.error(new Date().toLocaleString() + ' =>', m)
         }
       }
     }
@@ -200,7 +200,7 @@ export function createIo(httpServer: httpServer): Server {
         } catch (e: unknown) {
           let m
           if (e instanceof Error) m = e.message
-          console.log('Error: ', m)
+          console.error(new Date().toLocaleString() + ' =>', m)
         }
       }
     })

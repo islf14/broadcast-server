@@ -249,6 +249,9 @@ button {
 .hidden {
   display: none;
 }
+.m-\.8\% {
+  margin: 0.8%;
+}
 
 /* End of general classes */
 
@@ -260,7 +263,7 @@ button {
   }
 }
 
-@media (width >= 640px) {
+@media (width >= 450px) {
   /* general */
 
   .sm\:h-full {
