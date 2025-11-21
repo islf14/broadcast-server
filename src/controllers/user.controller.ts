@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { ChatController } from './chat.controller.js'
 import { UserModel } from '../models/user.model.js'
-import { Name, UserDB } from '../types.js'
+import { Id, Name, UserDB } from '../types.js'
 
 export class UserController {
   ////
@@ -11,11 +11,11 @@ export class UserController {
     return res.status(200).json(row)
   }
 
-  //
+  // Used in io.route - user:login
 
   static login = ({ name }: Name): string => {
-    const exist = UserModel.findByName({ name })
-    if (exist) {
+    const count = UserModel.countUsersByName({ name })
+    if (count !== 0) {
       throw new Error('User already exists')
     }
 
@@ -52,30 +52,29 @@ export class UserController {
   }
 
   // return active users
+  // Used in io.route - emitActiveUsers
 
-  static getActiveUsers(): Array<UserDB> {
-    const activeUsers = UserModel.allActiveUsers()
-    return activeUsers
+  static getActiveUsers(): Array<Name> {
+    return UserModel.nameActiveUsers()
   }
 
   // Return active users and the user
+  // Used in io.route - broadcastUser
 
-  static getUser = ({ id }: { id: string }): UserDB => {
-    const user = UserModel.find({ id })
-    return user
+  static getUser = ({ id }: Id): Name => {
+    return UserModel.find({ id })
   }
 
-  //
   // Return the user if there are users to notify
+  // Used in io.route - notifyOrClose
 
-  static userDisconnect = ({ name }: Name): UserDB | undefined => {
+  static notifyDisconnection = (): boolean => {
     //
-    const user = UserModel.findByName({ name })
-    const activeUsers = UserModel.allActiveUsers()
-    if (activeUsers.length !== 0) {
-      return user
+    const countActiveUsers = UserModel.countAciveUsers()
+    if (countActiveUsers !== 0) {
+      return true
     }
-    return undefined
+    return false
   }
 
   // Close Chat if is necessary
@@ -83,10 +82,10 @@ export class UserController {
   static closeChat = async (): Promise<boolean> => {
     const chatClosed = await new Promise<boolean>((resolve) => {
       setTimeout(() => {
-        const activeUsers = UserModel.allActiveUsers()
+        const countActiveUsers = UserModel.countAciveUsers()
 
         // finish chat?
-        if (activeUsers.length === 0) {
+        if (countActiveUsers === 0) {
           // 0 active users
           try {
             ChatController.closeChat()
@@ -104,6 +103,7 @@ export class UserController {
   }
 
   // If the user reloads the page, try to prevent the notification
+  // Used in io.route - disconnect
 
   static userAfter = async ({ name }: Name): Promise<UserDB | undefined> => {
     const userAfter = await new Promise<UserDB | undefined>((resolve) => {

@@ -66,12 +66,9 @@ export class MessageModel {
     }
   }
 
-  //
+  // MessageController - loadMessages
 
-  static messagesByChatOrder = ({
-    chatId,
-    ord
-  }: Messages): Array<MessageDB> => {
+  static messagesOrder = ({ chatId, ord }: Messages): Array<MessageDB> => {
     let db
     try {
       db = connectMessages()
@@ -83,7 +80,7 @@ export class MessageModel {
 
     const result = db
       .prepare(
-        'SELECT message, username, ord, chatId, createdAt as date FROM messages WHERE chatId = ? AND ord > ?'
+        'SELECT message, username, ord, createdAt as date FROM messages WHERE chatId = ? AND ord > ? ORDER BY ord ASC'
       )
       .all(chatId, ord) as Array<MessageDB>
     db.close()

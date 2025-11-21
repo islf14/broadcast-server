@@ -97,8 +97,8 @@ socket.on('server:login_active_users', (users) => {
   const ulusers = $('#users ul')
   ulusers.innerHTML = ''
 
-  users.forEach((element) => {
-    if (element.name === username) {
+  users.forEach((user) => {
+    if (user.name === username) {
       // Add the user to the begining of the list
       const li = document.createElement('li')
       const span = document.createElement('span')
@@ -117,7 +117,7 @@ socket.on('server:login_active_users', (users) => {
       // Add other users
       const li = document.createElement('li')
       const span = document.createElement('span')
-      span.textContent = element.name
+      span.textContent = user.name
       li.appendChild(span)
       ulusers.insertAdjacentElement('beforeend', li)
     }

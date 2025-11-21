@@ -25,7 +25,8 @@ function connectUsers() {
 
 export class UserModel {
   //
-
+  // Used in UserController
+  /// getActiveUsers, logoutAll
   static allActiveUsers = (): Array<UserDB> => {
     let db
     try {
@@ -41,6 +42,44 @@ export class UserModel {
       .all(1) as Array<UserDB>
     db.close()
     return result
+  }
+
+  // Used in UserController
+  /// getActiveUsers, logoutAll
+  static nameActiveUsers = (): Array<Name> => {
+    let db
+    try {
+      db = connectUsers()
+    } catch (e: unknown) {
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
+    }
+
+    const result = db
+      .prepare('SELECT name FROM users WHERE status = ?')
+      .all(1) as Array<Name>
+    db.close()
+    return result
+  }
+
+  // Used in UserController
+  /// userDisconnect, closeChat
+
+  static countAciveUsers = (): number => {
+    let db
+    try {
+      db = connectUsers()
+    } catch (e: unknown) {
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
+    }
+    const result = db
+      .prepare('SELECT COUNT(*) as count FROM users WHERE status = ?')
+      .get(1) as { count: number }
+    db.close()
+    return result.count
   }
 
   //
@@ -87,9 +126,9 @@ export class UserModel {
     }
   }
 
-  //
+  // Used in UserController - getUser
 
-  static find = ({ id }: Id): UserDB => {
+  static find = ({ id }: Id): Name => {
     let db
     try {
       db = connectUsers()
@@ -100,11 +139,13 @@ export class UserModel {
     }
 
     const result = db
-      .prepare('SELECT * FROM users WHERE id = ?')
-      .get(id) as UserDB
+      .prepare('SELECT name FROM users WHERE id = ?')
+      .get(id) as Name
     db.close()
     return result
   }
+
+  // Used in UserController - userAfter
 
   static findByName = ({ name }: Name): UserDB | undefined => {
     let db
@@ -123,7 +164,25 @@ export class UserModel {
     return result
   }
 
-  //
+  // Used in UserController - login
+
+  static countUsersByName = ({ name }: Name): number => {
+    let db
+    try {
+      db = connectUsers()
+    } catch (e: unknown) {
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
+    }
+    const result = db
+      .prepare('SELECT COUNT(*) as count FROM users WHERE name = ?')
+      .get(name) as { count: number }
+    db.close()
+    return result.count
+  }
+
+  // Used in UserController - vlogin
 
   static findByNameStatus = ({ name, status }: NaSt): UserDB | undefined => {
     let db

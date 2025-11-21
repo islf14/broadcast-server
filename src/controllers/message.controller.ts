@@ -18,13 +18,10 @@ export class MessageController {
     }
   }
 
-  //
+  // Used in io.route - emitMessages
 
   static loadMessages = ({ chatId, ord }: Messages): Array<MessageDB> => {
-    return MessageModel.messagesByChatOrder({
-      chatId,
-      ord
-    })
+    return MessageModel.messagesOrder({ chatId, ord })
   }
 
   //

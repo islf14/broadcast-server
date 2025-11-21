@@ -29,16 +29,17 @@ export type NewMessage = {
   chatId: string
 }
 
+// MessageController - loadMessages
+// MessageModel - messagesOrder
 export type Messages = {
   chatId: string
   ord: number
 }
-
+// MessageModel
 export type MessageDB = {
   message: string
   username: string
   ord: number
-  chatId: string
   date: string
 }
 
@@ -52,6 +53,8 @@ export type UserDB = {
 
 export type Id = Pick<UserDB, 'id'>
 
+// UserController - Login,Vlogin,userDisconnect,userAfterLogout
+// UserModel - create
 export type Name = Pick<UserDB, 'name'>
 
 export type NaSt = Omit<UserDB, 'id'>
@@ -85,14 +88,4 @@ export type StaticOrigin =
 export type Rate = {
   times: number
   minutes: number
-}
-
-// UserController
-/// Login,Vlogin,Logout
-export type Name = { name: string }
-
-/// disNotify, disReload
-export type EndChatUser = {
-  endChat: boolean
-  userNoti: object
 }
