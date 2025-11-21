@@ -3,6 +3,7 @@ import { MessageDB, Messages, NewMessage } from '../types.js'
 
 export class MessageController {
   //
+  // Used id io.route - user:message
 
   static create = ({ message, username, chatId }: NewMessage): MessageDB => {
     try {

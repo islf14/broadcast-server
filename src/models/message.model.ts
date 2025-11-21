@@ -25,6 +25,7 @@ function connectMessages() {
 
 export class MessageModel {
   //
+  // MessageController - create
 
   static create = ({ message, username, chatId }: NewMessage): MessageDB => {
     let db
@@ -54,7 +55,7 @@ export class MessageModel {
       )
       return db
         .prepare(
-          'SELECT message, username, ord, chatId, createdAt as date FROM messages WHERE id = ?'
+          'SELECT message, username, ord, createdAt as date FROM messages WHERE id = ?'
         )
         .get(id) as MessageDB
     } catch (e: unknown) {

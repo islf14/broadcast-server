@@ -23,6 +23,8 @@ export function createIo(httpServer: httpServer): Server {
     /* options */
   })
 
+  const chatName = 'currentChat'
+
   UserController.logoutAll()
   let chatId: string = ''
 
@@ -47,6 +49,7 @@ export function createIo(httpServer: httpServer): Server {
         // The name is created if it does not exist
         const id_user = UserController.login({ name }) as string
         socket.handshake.auth.username = name
+        socket.join(chatName) // Add user to current chat
         emitActiveUsers() // Obtain active users and notify the user
         // Create a chat ID if one does not exist
         const id_chat = ChatController.newChat()
@@ -61,7 +64,7 @@ export function createIo(httpServer: httpServer): Server {
         if (e instanceof Error) m = e.message
         // Notify error to the user
         console.error(new Date().toLocaleString() + ' =>', m)
-        socket.emit('server:login_error', 'Try again or with a different name')
+        socket.emit('server_user:login_error', 'Try again (other name)')
       }
     })
 
@@ -75,18 +78,19 @@ export function createIo(httpServer: httpServer): Server {
           name: socket.handshake.auth.username
         })
         if (id_user) {
+          socket.join(chatName) // Add user to current chat
           emitActiveUsers() // Obtain active users and notify the user
           broadcastUser(id_user) // Notify other users of the connection
           emitMessages() // Send messages to the user
         } else {
           socket.handshake.auth.username = null
-          socket.emit('server:login_error', 'New chat, login again.')
+          socket.emit('server_user:login_error', 'New chat, login again.')
         }
       } catch (e: unknown) {
         let m
         if (e instanceof Error) m = e.message
         console.error(new Date().toLocaleString() + ' =>', m)
-        socket.emit('server:login_error', 'Error, login again.')
+        socket.emit('server_user:login_error', 'Error, login again.')
       }
     })
 
@@ -95,15 +99,16 @@ export function createIo(httpServer: httpServer): Server {
       // Get the active users
       const activeUsers = UserController.getActiveUsers()
       // Send active users to the user
-      socket.emit('server:login_active_users', activeUsers)
+      socket.emit('server_user:active_users', activeUsers)
     }
 
     // Get the user and notify other users of the connection
     function broadcastUser(id_user: string) {
       // Get the user
-      const user = UserController.getUser({ id: id_user })
-      // Notify other users of the connection
-      socket.broadcast.emit('server:user_connected', { name: user.name })
+      const userName = UserController.getUser({ id: id_user })
+      const user = { name: userName.name }
+      // Notify other users of the connection // broadcast
+      socket.to(chatName).emit('server_other:user_connected', user)
     }
 
     // Load messages from the current chat and notify the user
@@ -114,11 +119,12 @@ export function createIo(httpServer: httpServer): Server {
         ord: socket.handshake.auth.countMessages
       })
       // Send messages to the user
-      socket.emit('server:login_messages', messages)
+      socket.emit('server_user:necessary_messages', messages)
     }
 
-    // CLEAN SOCKET AUTH
-
+    // Reset socket because the user deleted data from local storage
+    // (e.g. when the  server stopped)
+    // clean so that the new user receives all messages.
     socket.on('user:clean', () => {
       socket.handshake.auth.username = null
       socket.handshake.auth.countMessages = 0
@@ -149,6 +155,7 @@ export function createIo(httpServer: httpServer): Server {
         UserController.logout({ name })
         socket.handshake.auth.username = null
         socket.handshake.auth.countMessages = 0
+        socket.leave(chatName)
         notifyOrClose({ name })
         //
       }
@@ -167,8 +174,8 @@ export function createIo(httpServer: httpServer): Server {
       }
 
       if (notify) {
-        // Notify other users of the disconnection
-        socket.broadcast.emit('server:user_disconnected', { name })
+        // Notify other users of the disconnection // broadcast
+        socket.to(chatName).emit('server_other:user_disconnected', { name })
       } else {
         // There are not active users
         // Check if the chat is going to close
@@ -198,7 +205,7 @@ export function createIo(httpServer: httpServer): Server {
           })
           if (message) {
             // Send the message to all users
-            io.emit('server:message', message)
+            io.to(chatName).emit('server_everyone:message', message)
           }
         } catch (e: unknown) {
           let m

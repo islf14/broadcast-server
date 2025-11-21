@@ -18,13 +18,18 @@ socket.on('connect', () => {
     modelogin()
     if (socket.auth.username) {
       socket.auth.username = null
+      socket.auth.countMessages = 0
+      // clean all old messages
+      const ulchat = $('#chat ul')
+      ulchat.innerHTML = ''
+      // socket reset
       socket.emit('user:clean')
     }
   }
 })
 
 // All receive the new message
-socket.on('server:message', (message) => {
+socket.on('server_everyone:message', (message) => {
   if (
     localStorage.getItem(u_bc) !== null &&
     localStorage.getItem(u_bc) === socket.auth.username
@@ -58,8 +63,7 @@ socket.on('server:message', (message) => {
 
 // The user receives all messages (or missing messages)
 // in the current chat
-socket.on('server:login_messages', (messages) => {
-  const ulchat = $('#chat ul')
+socket.on('server_user:necessary_messages', (messages) => {
   messages.forEach((message) => {
     const date = new Date(message.date)
     const localeTime = date.toLocaleTimeString('en-GB').split(':')
@@ -80,6 +84,7 @@ socket.on('server:login_messages', (messages) => {
     li.appendChild(span)
     li.appendChild(p)
     li.appendChild(small)
+    // don't clean messages, only add
     ulchat.insertAdjacentElement('beforeend', li)
     ulchat.scrollTop = ulchat.scrollHeight
     if (message.ord > socket.auth.countMessages) {
@@ -89,12 +94,13 @@ socket.on('server:login_messages', (messages) => {
 })
 
 // The user receives the active users
-socket.on('server:login_active_users', (users) => {
+socket.on('server_user:active_users', (users) => {
   socket.auth.username = localStorage.getItem(u_bc)
   $('#name').value = ''
   modechat()
   const username = localStorage.getItem(u_bc)
   const ulusers = $('#users ul')
+  // clean all old users
   ulusers.innerHTML = ''
 
   users.forEach((user) => {
@@ -125,7 +131,7 @@ socket.on('server:login_active_users', (users) => {
 })
 
 // Receive a connection notification from another user
-socket.on('server:user_connected', (user) => {
+socket.on('server_other:user_connected', (user) => {
   if (
     localStorage.getItem(u_bc) !== null &&
     localStorage.getItem(u_bc) === socket.auth.username
@@ -149,7 +155,7 @@ socket.on('server:user_connected', (user) => {
 })
 
 // Receive a disconnection notification from another user
-socket.on('server:user_disconnected', (user) => {
+socket.on('server_other:user_disconnected', (user) => {
   if (
     localStorage.getItem(u_bc) !== null &&
     localStorage.getItem(u_bc) === socket.auth.username
@@ -165,7 +171,7 @@ socket.on('server:user_disconnected', (user) => {
 })
 
 // The user receive a login error notification
-socket.on('server:login_error', (msg) => {
+socket.on('server_user:login_error', (msg) => {
   localStorage.removeItem(u_bc)
   modelogin()
   const sp = $('#formlogin span')
@@ -173,7 +179,7 @@ socket.on('server:login_error', (msg) => {
   sp.style.color = 'red'
 })
 
-// end of socket
+// end of SOCKET
 
 //  L O G I N
 $('#formlogin').addEventListener('submit', (e) => {
