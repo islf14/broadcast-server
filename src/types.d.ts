@@ -3,11 +3,12 @@
 export interface ServerToClientEvents {
   // server to user, other , all : data
   'server_user:login_error': (msg: string) => void
+  'server_user:rate_error': (msg: string) => void
   'server_user:active_users': (Array) => void
-  'server_other:user_connected': (user: object) => void
-  'server_everyone:message': (message: object) => void
   'server_user:necessary_messages': (messages: Array) => void
+  'server_other:user_connected': (user: object) => void
   'server_other:user_disconnected': (user: object) => void
+  'server_everyone:message': (message: object) => void
 }
 
 export interface ClientToServerEvents {

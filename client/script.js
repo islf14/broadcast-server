@@ -179,6 +179,15 @@ socket.on('server_user:login_error', (msg) => {
   sp.style.color = 'red'
 })
 
+socket.on('server_user:rate_error', (msg) => {
+  $('#chatError').style.display = 'block'
+  $('#chatError div span').innerText = msg
+  setTimeout(() => {
+    $('#chatError').style.display = 'none'
+    $('#chatError div span').innerText = ''
+  }, 4000)
+})
+
 // end of SOCKET
 
 //  L O G I N

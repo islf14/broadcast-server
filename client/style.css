@@ -186,6 +186,23 @@ button {
   margin: 0;
 }
 
+.chat-error-1 {
+  position: relative;
+  bottom: 120px;
+}
+
+.chat-error-2 {
+  display: flex;
+  justify-content: center;
+}
+
+.chat-error-2 > span {
+  padding: 0.4rem;
+  background-color: red;
+  border: 1px solid;
+  border-radius: 0.5rem;
+}
+
 .formchat {
   position: relative;
   display: flex;

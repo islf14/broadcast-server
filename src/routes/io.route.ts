@@ -3,6 +3,7 @@ import { Server as httpServer } from 'node:http'
 import { UserController } from '../controllers/user.controller.js'
 import { MessageController } from '../controllers/message.controller.js'
 import { ChatController } from '../controllers/chat.controller.js'
+import { RateLimiterMemory } from 'rate-limiter-flexible'
 import {
   ClientToServerEvents,
   InterServerEvents,
@@ -44,28 +45,40 @@ export function createIo(httpServer: httpServer): Server {
     // Login
     // The user send a new name to join the chat
 
+    const loginRateLimiter = new RateLimiterMemory({
+      points: 2, // 2 messages
+      duration: 20 // per 5 seconds
+    })
+
     socket.on('user:login', (name) => {
-      try {
-        // The name is created if it does not exist
-        const id_user = UserController.login({ name }) as string
-        socket.handshake.auth.username = name
-        socket.join(chatName) // Add user to current chat
-        emitActiveUsers() // Obtain active users and notify the user
-        // Create a chat ID if one does not exist
-        const id_chat = ChatController.newChat()
-        if (id_chat) {
-          chatId = id_chat
-        } else {
-          broadcastUser(id_user) // Notify other users of the connection
-          emitMessages() // Send messages to the user
-        }
-      } catch (e: unknown) {
-        let m
-        if (e instanceof Error) m = e.message
-        // Notify error to the user
-        console.error(new Date().toLocaleString() + ' =>', m)
-        socket.emit('server_user:login_error', 'Try again (other name)')
-      }
+      loginRateLimiter
+        .consume(socket.handshake.address)
+        .then(() => {
+          try {
+            // The name is created if it does not exist
+            const id_user = UserController.login({ name }) as string
+            socket.handshake.auth.username = name
+            socket.join(chatName) // Add user to current chat
+            emitActiveUsers() // Obtain active users and notify the user
+            // Create a chat ID if one does not exist
+            const id_chat = ChatController.newChat()
+            if (id_chat) {
+              chatId = id_chat
+            } else {
+              broadcastUser(id_user) // Notify other users of the connection
+              emitMessages() // Send messages to the user
+            }
+          } catch (e: unknown) {
+            let m
+            if (e instanceof Error) m = e.message
+            // Notify error to the user
+            console.error(new Date().toLocaleString() + ' =>', m)
+            socket.emit('server_user:login_error', 'Try again (other name)')
+          }
+        })
+        .catch(() => {
+          socket.emit('server_user:login_error', 'Too many logins')
+        })
     })
 
     // Verify login
@@ -194,25 +207,36 @@ export function createIo(httpServer: httpServer): Server {
 
     //
     // The user sends a new message
+    const messageRateLimiter = new RateLimiterMemory({
+      points: 10, // 4 messages
+      duration: 5 // per 2 seconds
+    })
 
     socket.on('user:message', (msg) => {
-      if (socket.handshake.auth.username !== null) {
-        try {
-          const message = MessageController.create({
-            message: msg,
-            username: socket.handshake.auth.username,
-            chatId
-          })
-          if (message) {
-            // Send the message to all users
-            io.to(chatName).emit('server_everyone:message', message)
+      messageRateLimiter
+        .consume(socket.handshake.address)
+        .then(() => {
+          if (socket.handshake.auth.username !== null) {
+            try {
+              const message = MessageController.create({
+                message: msg,
+                username: socket.handshake.auth.username,
+                chatId
+              })
+              if (message) {
+                // Send the message to all users
+                io.to(chatName).emit('server_everyone:message', message)
+              }
+            } catch (e: unknown) {
+              let m
+              if (e instanceof Error) m = e.message
+              console.error(new Date().toLocaleString() + ' =>', m)
+            }
           }
-        } catch (e: unknown) {
-          let m
-          if (e instanceof Error) m = e.message
-          console.error(new Date().toLocaleString() + ' =>', m)
-        }
-      }
+        })
+        .catch(() => {
+          socket.emit('server_user:rate_error', 'Too many messages')
+        })
     })
 
     //
