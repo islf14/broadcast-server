@@ -1,11 +1,16 @@
-import { MessageModel } from '../models/message.model.js'
+// import { MessageModel } from '../models/message.model.js'
+import { MessageModel } from '../models/turso/message.model.js'
 import { MessageDB, Messages, NewMessage } from '../types.js'
 
 export class MessageController {
   //
   // Used id io.route - user:message
 
-  static create = ({ message, username, chatId }: NewMessage): MessageDB => {
+  static create = ({
+    message,
+    username,
+    chatId
+  }: NewMessage): Promise<MessageDB> => {
     try {
       return MessageModel.create({
         message,
@@ -21,7 +26,10 @@ export class MessageController {
 
   // Used in io.route - emitMessages
 
-  static loadMessages = ({ chatId, ord }: Messages): Array<MessageDB> => {
+  static loadMessages = ({
+    chatId,
+    ord
+  }: Messages): Promise<Array<MessageDB>> => {
     return MessageModel.messagesOrder({ chatId, ord })
   }
 

@@ -12,7 +12,7 @@ import {
   SocketData
 } from '../types.js'
 
-export function createIo(httpServer: httpServer): Server {
+export async function createIo(httpServer: httpServer): Promise<Server> {
   //
   // S O C K E T
   const io = new Server<
@@ -30,15 +30,20 @@ export function createIo(httpServer: httpServer): Server {
   let chatId: string = ''
 
   try {
-    const chat = ChatController.activeChat()
+    const chat = await ChatController.activeChat()
     if (chat) {
       chatId = chat.id
+    } else {
+      await UserController.deleteAll()
     }
   } catch (e: unknown) {
     let m
     if (e instanceof Error) m = e.message
-    console.error(new Date().toLocaleString() + ' =>', m)
+    console.error(new Date().toLocaleString() + ' - Initial Error =>', m)
   }
+
+  //
+  // I O   R O U T E S
 
   io.on('connection', (socket) => {
     //
@@ -53,26 +58,26 @@ export function createIo(httpServer: httpServer): Server {
     socket.on('user:login', (name) => {
       loginRateLimiter
         .consume(socket.handshake.address)
-        .then(() => {
+        .then(async () => {
           try {
             // The name is created if it does not exist
-            const id_user = UserController.login({ name }) as string
+            const id_user = await UserController.login({ name })
             socket.handshake.auth.username = name
             socket.join(chatName) // Add user to current chat
-            emitActiveUsers() // Obtain active users and notify the user
+            await emitActiveUsers() // Obtain active users and notify the user
             // Create a chat ID if one does not exist
-            const id_chat = ChatController.newChat()
+            const id_chat = await ChatController.newChat()
             if (id_chat) {
               chatId = id_chat
             } else {
-              broadcastUser(id_user) // Notify other users of the connection
-              emitMessages() // Send messages to the user
+              await broadcastUser(id_user) // Notify other users of the connection
+              await emitMessages() // Send messages to the user
             }
           } catch (e: unknown) {
             let m
             if (e instanceof Error) m = e.message
             // Notify error to the user
-            console.error(new Date().toLocaleString() + ' =>', m)
+            console.error(new Date().toLocaleString() + ' - Login Error =>', m)
             socket.emit('server_user:login_error', 'Try again (other name)')
           }
         })
@@ -84,50 +89,58 @@ export function createIo(httpServer: httpServer): Server {
     // Verify login
     // The user reloads the page or reconnects
 
-    socket.on('user:vflogin', () => {
-      try {
-        // Check if the user has a status of 0 and change to 1
-        const id_user = UserController.vlogin({
-          name: socket.handshake.auth.username
-        })
-        if (id_user) {
-          socket.join(chatName) // Add user to current chat
-          emitActiveUsers() // Obtain active users and notify the user
-          broadcastUser(id_user) // Notify other users of the connection
-          emitMessages() // Send messages to the user
-        } else {
-          socket.handshake.auth.username = null
-          socket.emit('server_user:login_error', 'New chat, login again.')
+    socket.on('user:vflogin', async () => {
+      if (chatId !== '') {
+        try {
+          // Check if the user has a status of 0 and change to 1
+          const id_user = await UserController.vlogin({
+            name: socket.handshake.auth.username
+          })
+          if (id_user) {
+            socket.join(chatName) // Add user to current chat
+            await emitActiveUsers() // Obtain active users and notify the user
+            await broadcastUser(id_user) // Notify other users of the connection
+            await emitMessages() // Send messages to the user
+          } else {
+            socket.handshake.auth.username = null
+            socket.emit('server_user:login_error', 'New chat, login again.')
+          }
+        } catch (e: unknown) {
+          let m
+          if (e instanceof Error) m = e.message
+          console.error(
+            new Date().toLocaleString() + ' - Verify Login Error =>',
+            m
+          )
+          socket.emit('server_user:login_error', 'Error, login again.')
         }
-      } catch (e: unknown) {
-        let m
-        if (e instanceof Error) m = e.message
-        console.error(new Date().toLocaleString() + ' =>', m)
-        socket.emit('server_user:login_error', 'Error, login again.')
+      } else {
+        socket.handshake.auth.username = null
+        socket.emit('server_user:login_error', 'No chat, login again.')
       }
     })
 
     // Obtain active users and notify the user
-    function emitActiveUsers() {
+    async function emitActiveUsers() {
       // Get the active users
-      const activeUsers = UserController.getActiveUsers()
+      const activeUsers = await UserController.getActiveUsers()
       // Send active users to the user
       socket.emit('server_user:active_users', activeUsers)
     }
 
     // Get the user and notify other users of the connection
-    function broadcastUser(id_user: string) {
+    async function broadcastUser(id_user: string) {
       // Get the user
-      const userName = UserController.getUser({ id: id_user })
+      const userName = await UserController.getUser({ id: id_user })
       const user = { name: userName.name }
       // Notify other users of the connection // broadcast
       socket.to(chatName).emit('server_other:user_connected', user)
     }
 
     // Load messages from the current chat and notify the user
-    function emitMessages() {
+    async function emitMessages() {
       // Load messages from the current chat
-      const messages = MessageController.loadMessages({
+      const messages = await MessageController.loadMessages({
         chatId,
         ord: socket.handshake.auth.countMessages
       })
@@ -149,7 +162,7 @@ export function createIo(httpServer: httpServer): Server {
     socket.on('disconnect', async () => {
       if (socket.handshake.auth.username !== null && chatId !== '') {
         const name = socket.handshake.auth.username
-        UserController.logout({ name })
+        await UserController.logout({ name })
         // waits a few seconds for the user to reconnect
         const userAfter = await UserController.userAfter({ name })
         // Check if the user is logged out
@@ -165,7 +178,7 @@ export function createIo(httpServer: httpServer): Server {
     socket.on('user:logout', async () => {
       if (socket.handshake.auth.username !== null && chatId !== '') {
         const name = socket.handshake.auth.username
-        UserController.logout({ name })
+        await UserController.logout({ name })
         socket.handshake.auth.username = null
         socket.handshake.auth.countMessages = 0
         socket.leave(chatName)
@@ -179,11 +192,14 @@ export function createIo(httpServer: httpServer): Server {
       let notify: boolean = false
       try {
         // Get the user (if there are active users)
-        notify = UserController.notifyDisconnection()
+        notify = await UserController.notifyDisconnection()
       } catch (e: unknown) {
         let m
         if (e instanceof Error) m = e.message
-        console.error(new Date().toLocaleString() + ' =>', m)
+        console.error(
+          new Date().toLocaleString() + ' - NotifyDisconnection Error =>',
+          m
+        )
       }
 
       if (notify) {
@@ -200,7 +216,10 @@ export function createIo(httpServer: httpServer): Server {
         } catch (e: unknown) {
           let m
           if (e instanceof Error) m = e.message
-          console.error(new Date().toLocaleString() + ' =>', m)
+          console.error(
+            new Date().toLocaleString() + ' - CloseChat Error =>',
+            m
+          )
         }
       }
     }
@@ -215,10 +234,10 @@ export function createIo(httpServer: httpServer): Server {
     socket.on('user:message', (msg) => {
       messageRateLimiter
         .consume(socket.handshake.address)
-        .then(() => {
+        .then(async () => {
           if (socket.handshake.auth.username !== null) {
             try {
-              const message = MessageController.create({
+              const message = await MessageController.create({
                 message: msg,
                 username: socket.handshake.auth.username,
                 chatId
@@ -230,7 +249,10 @@ export function createIo(httpServer: httpServer): Server {
             } catch (e: unknown) {
               let m
               if (e instanceof Error) m = e.message
-              console.error(new Date().toLocaleString() + ' =>', m)
+              console.error(
+                new Date().toLocaleString() + ' - Message Error =>',
+                m
+              )
             }
           }
         })

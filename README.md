@@ -1,4 +1,6 @@
-# Broadcast Server Web App
+# Chat Server Web App
+
+This web application creates a chat room where anyone can join and send messages. It is not possible for two users to have the same name. When the last user logs out, the chat closes and users are reset.
 
 ## Requirements
 

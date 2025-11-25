@@ -17,7 +17,7 @@ app.use(json())
 app.use(express.static(join(process.cwd(), 'client')))
 
 const httpServer = createServer(app)
-createIo(httpServer)
+await createIo(httpServer)
 
 app.use('/', userRouter())
 

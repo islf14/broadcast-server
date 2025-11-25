@@ -25,8 +25,7 @@ function connectUsers() {
 
 export class UserModel {
   //
-  // Used in UserController
-  /// getActiveUsers, logoutAll
+  // Used in UserController - logoutAll
   static allActiveUsers = (): Array<UserDB> => {
     let db
     try {
@@ -44,8 +43,7 @@ export class UserModel {
     return result
   }
 
-  // Used in UserController
-  /// getActiveUsers, logoutAll
+  // Used in UserController - getActiveUsers
   static nameActiveUsers = (): Array<Name> => {
     let db
     try {
@@ -63,8 +61,7 @@ export class UserModel {
     return result
   }
 
-  // Used in UserController
-  /// userDisconnect, closeChat
+  // Used in UserController - notifyDisconnection, closeChat
 
   static countAciveUsers = (): number => {
     let db
@@ -82,7 +79,7 @@ export class UserModel {
     return result.count
   }
 
-  //
+  // Used in UserController - users
 
   static allUsers = (): Array<UserDB> => {
     let db
@@ -99,7 +96,25 @@ export class UserModel {
     return result
   }
 
-  //
+  // Used in UserController - countAllUsers
+
+  static countAllUsers = (): number => {
+    let db
+    try {
+      db = connectUsers()
+    } catch (e: unknown) {
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error('can not connect: ' + m)
+    }
+    const result = db.prepare('SELECT COUNT(*) as count FROM users').get() as {
+      count: number
+    }
+    db.close()
+    return result.count
+  }
+
+  // Used in UserController - login
 
   static create = ({ name }: Name): string => {
     let db
@@ -201,7 +216,7 @@ export class UserModel {
     return result
   }
 
-  //
+  // Used in UserController - vlogin, logoutAll
 
   static updateStatus = ({ id, status }: IdSt): void => {
     let db
@@ -228,6 +243,8 @@ export class UserModel {
     }
   }
 
+  // Used in UserController - logout
+
   static updateStatusByName = ({ name, status }: NaSt): void => {
     let db
     try {
@@ -251,28 +268,7 @@ export class UserModel {
     }
   }
 
-  //
-
-  static delete = ({ id }: Id): void => {
-    let db
-    try {
-      db = connectUsers()
-    } catch (e: unknown) {
-      let m
-      if (e instanceof Error) m = e.message
-      throw new Error('can not connect: ' + m)
-    }
-
-    try {
-      db.prepare('DELETE FROM users WHERE id = ?').get(id)
-    } catch (e: unknown) {
-      let m
-      if (e instanceof Error) m = e.message
-      throw new Error('can not delete: ' + m)
-    } finally {
-      db.close()
-    }
-  }
+  // Used in UserController - deleteAll
 
   static deleteAll = (): void => {
     let db

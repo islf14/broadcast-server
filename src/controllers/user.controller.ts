@@ -1,20 +1,27 @@
 import { Request, Response } from 'express'
 import { ChatController } from './chat.controller.js'
-import { UserModel } from '../models/user.model.js'
+// import { UserModel } from '../models/user.model.js'
+import { UserModel } from '../models/turso/user.model.js'
 import { Id, Name, UserDB } from '../types.js'
 
 export class UserController {
   ////
-
-  users = (_req: Request, res: Response) => {
-    const row = UserModel.allUsers()
+  // Used in user.route
+  users = async (_req: Request, res: Response) => {
+    const row = await UserModel.allUsers()
     return res.status(200).json(row)
+  }
+
+  // Used in ChatController - newChat
+
+  static countAllUsers = (): Promise<number> => {
+    return UserModel.countAllUsers()
   }
 
   // Used in io.route - user:login
 
-  static login = ({ name }: Name): string => {
-    const count = UserModel.countUsersByName({ name })
+  static login = async ({ name }: Name): Promise<string> => {
+    const count = await UserModel.countUsersByName({ name })
     if (count !== 0) {
       throw new Error('User already exists')
     }
@@ -30,16 +37,15 @@ export class UserController {
 
   // Return the user id if it exists
 
-  static vlogin = ({ name }: Name): string | undefined => {
-    const user = UserModel.findByNameStatus({
+  static vlogin = async ({ name }: Name): Promise<string | undefined> => {
+    const user = await UserModel.findByNameStatus({
       name,
       status: 0
     })
-
     if (user) {
       try {
         // change status to active
-        UserModel.updateStatus({ id: user.id, status: 1 })
+        await UserModel.updateStatus({ id: user.id, status: 1 })
         return user.id
       } catch (e: unknown) {
         let m
@@ -54,23 +60,22 @@ export class UserController {
   // return active users
   // Used in io.route - emitActiveUsers
 
-  static getActiveUsers(): Array<Name> {
+  static getActiveUsers(): Promise<Array<Name>> {
     return UserModel.nameActiveUsers()
   }
 
   // Return active users and the user
   // Used in io.route - broadcastUser
 
-  static getUser = ({ id }: Id): Name => {
+  static getUser = ({ id }: Id): Promise<Name> => {
     return UserModel.find({ id })
   }
 
   // Return the user if there are users to notify
   // Used in io.route - notifyOrClose
 
-  static notifyDisconnection = (): boolean => {
-    //
-    const countActiveUsers = UserModel.countAciveUsers()
+  static notifyDisconnection = async (): Promise<boolean> => {
+    const countActiveUsers = await UserModel.countAciveUsers()
     if (countActiveUsers !== 0) {
       return true
     }
@@ -81,15 +86,15 @@ export class UserController {
 
   static closeChat = async (): Promise<boolean> => {
     const chatClosed = await new Promise<boolean>((resolve) => {
-      setTimeout(() => {
-        const countActiveUsers = UserModel.countAciveUsers()
+      setTimeout(async () => {
+        const countActiveUsers = await UserModel.countAciveUsers()
 
         // finish chat?
         if (countActiveUsers === 0) {
           // 0 active users
           try {
-            ChatController.closeChat()
-            UserController.deleteAll()
+            await ChatController.closeChat()
+            await UserController.deleteAll()
             resolve(true)
           } catch (e: unknown) {
             let m
@@ -107,9 +112,9 @@ export class UserController {
 
   static userAfter = async ({ name }: Name): Promise<UserDB | undefined> => {
     const userAfter = await new Promise<UserDB | undefined>((resolve) => {
-      setTimeout(() => {
+      setTimeout(async () => {
         // after 3 second
-        const user = UserModel.findByName({ name })
+        const user = await UserModel.findByName({ name })
         resolve(user)
       }, 3000)
     })
@@ -118,9 +123,9 @@ export class UserController {
 
   // Changing status to inactive
 
-  static logout = ({ name }: Name): void => {
+  static logout = async ({ name }: Name): Promise<void> => {
     try {
-      UserModel.updateStatusByName({ name, status: 0 })
+      await UserModel.updateStatusByName({ name, status: 0 })
     } catch (e: unknown) {
       let m
       if (e instanceof Error) m = e.message
@@ -128,19 +133,20 @@ export class UserController {
     }
   }
 
-  //
+  // Used in io
 
-  static logoutAll = (): void => {
-    const activeUsers = UserModel.allActiveUsers()
+  static logoutAll = async (): Promise<void> => {
+    const activeUsers = await UserModel.allActiveUsers()
     activeUsers.forEach((user) => {
       UserModel.updateStatus({ id: user.id, status: 0 })
     })
   }
 
-  //
+  // Used in UserController - closeChat
+  // Used in ChatController - newChat
 
-  static deleteAll = (): void => {
-    UserModel.deleteAll()
+  static deleteAll = async (): Promise<void> => {
+    await UserModel.deleteAll()
   }
 
   //

@@ -1,17 +1,16 @@
-import Database from 'libsql'
+import { createClient } from '@libsql/client'
 import { v4 as uuidv4 } from 'uuid'
-import { ChatDB, StatusChat, UpdChat } from '../types.js'
+import { ChatDB, StatusChat, UpdChat } from '../../types.js'
+import { dbAuthToken, dbUrl } from '../../constants.js'
 
-function connectChats() {
-  const db = new Database('./data.db')
+async function connectChats() {
+  const db = createClient({ url: dbUrl, authToken: dbAuthToken })
   try {
-    const tb = db
-      .prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='chats'"
-      )
-      .get()
-    if (tb === undefined) {
-      db.exec(
+    const tb = await db.execute(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='chats'"
+    )
+    if (tb.rows.length === 0) {
+      await db.execute(
         'CREATE TABLE chats (id BLOB PRIMARY KEY, status NUMERIC, createdAt TEXT, updatedAt TEXT)'
       )
     }
@@ -27,10 +26,10 @@ export class ChatModel {
   //
   // Used in ChatController - newChat
 
-  static create = (): string => {
+  static create = async (): Promise<string> => {
     let db
     try {
-      db = connectChats()
+      db = await connectChats()
     } catch (e: unknown) {
       let m
       if (e instanceof Error) m = e.message
@@ -39,9 +38,15 @@ export class ChatModel {
 
     try {
       let chatId = uuidv4()
-      db.prepare(
+      const sql =
         'INSERT INTO chats (id, status, createdAt, updatedAt) VALUES (?, ?, ?, ?)'
-      ).get(chatId, 1, new Date().toISOString(), new Date().toISOString())
+      const args = [
+        chatId,
+        1,
+        new Date().toISOString(),
+        new Date().toISOString()
+      ]
+      await db.execute({ sql, args })
       return chatId
     } catch (e: unknown) {
       let m
@@ -54,10 +59,13 @@ export class ChatModel {
 
   // Used in ChatController - closeChat
 
-  static updateStatusByStatus = ({ status, nStatus }: UpdChat): boolean => {
+  static updateStatusByStatus = async ({
+    status,
+    nStatus
+  }: UpdChat): Promise<boolean> => {
     let db
     try {
-      db = connectChats()
+      db = await connectChats()
     } catch (e: unknown) {
       let m
       if (e instanceof Error) m = e.message
@@ -65,9 +73,9 @@ export class ChatModel {
     }
 
     try {
-      db.prepare(
-        'UPDATE chats SET status = ?, updatedAt = ? WHERE status = ?'
-      ).get(nStatus, new Date().toISOString(), status)
+      const sql = 'UPDATE chats SET status = ?, updatedAt = ? WHERE status = ?'
+      const args = [nStatus, new Date().toISOString(), status]
+      await db.execute({ sql, args })
       return true
     } catch (e: unknown) {
       let m
@@ -80,21 +88,21 @@ export class ChatModel {
 
   // ChatController - activeChat
 
-  static findByStatus = ({ status }: StatusChat): ChatDB => {
+  static findByStatus = async ({ status }: StatusChat): Promise<ChatDB> => {
     let db
     try {
-      db = connectChats()
+      db = await connectChats()
     } catch (e: unknown) {
       let m
       if (e instanceof Error) m = e.message
       throw new Error('can not connect: ' + m)
     }
-
-    const result = db
-      .prepare('SELECT * FROM chats WHERE status = ?')
-      .get(status) as ChatDB
+    const sql = 'SELECT * FROM chats WHERE status = ?'
+    const args = [status]
+    const result = await db.execute({ sql, args })
+    const data = result.rows[0] as unknown as ChatDB
     db.close()
-    return result
+    return data
   }
 
   //

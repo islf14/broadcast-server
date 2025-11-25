@@ -63,6 +63,12 @@ export type NaSt = Omit<UserDB, 'id'>
 
 export type IdSt = Omit<UserDB, 'name'>
 
+export type ShowUser = {
+  name: string
+  status: number
+  date: string
+}
+
 // CHATS
 
 export type ChatDB = {
