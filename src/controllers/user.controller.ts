@@ -36,24 +36,35 @@ export class UserController {
   }
 
   // Return the user id if it exists
-
+  // Check if the user is offline and try switching to online mode
   static vlogin = async ({ name }: Name): Promise<string | undefined> => {
-    const user = await UserModel.findByNameStatus({
-      name,
-      status: 0
-    })
+    const values = { name, status: 0 }
+    const user = await UserModel.findByNameStatus(values)
     if (user) {
-      try {
-        // change status to active
-        await UserModel.updateStatus({ id: user.id, status: 1 })
-        return user.id
-      } catch (e: unknown) {
-        let m
-        if (e instanceof Error) m = e.message
-        throw new Error(m)
-      }
+      return await UserController.changeToOnline(user.id)
     } else {
-      return undefined
+      const user2 = await new Promise<UserDB | undefined>((resolve) => {
+        setTimeout(async () => {
+          resolve(await UserModel.findByNameStatus(values))
+        }, 600)
+      })
+      if (user2) {
+        return await UserController.changeToOnline(user2.id)
+      } else {
+        return undefined
+      }
+    }
+  }
+  // change status to active
+  // vlogin (above)
+  static async changeToOnline(id: string): Promise<string> {
+    try {
+      await UserModel.updateStatus({ id, status: 1 })
+      return id
+    } catch (e: unknown) {
+      let m
+      if (e instanceof Error) m = e.message
+      throw new Error(m)
     }
   }
 

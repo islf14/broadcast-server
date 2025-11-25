@@ -228,10 +228,8 @@ export class UserModel {
 
     const sql = 'SELECT * FROM users WHERE name = ? AND status = ?'
     const args = [name, status]
-    console.log('vlogin m before execute findbyname')
     const result = await db.execute({ sql, args })
     const data = result.rows[0] as unknown as UserDB
-    console.log('vlogin m after execute findbyname', data)
     db.close()
     return data
   }
@@ -276,9 +274,7 @@ export class UserModel {
     try {
       const sql = 'UPDATE users SET status = ?, updatedAt = ? WHERE name = ?'
       const args = [status, new Date().toISOString(), name]
-      console.log('disc m before execute')
       await db.execute({ sql, args })
-      console.log('disc m after execute (changed)')
     } catch (e: unknown) {
       let m
       if (e instanceof Error) m = e.message
