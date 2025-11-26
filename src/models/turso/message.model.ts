@@ -44,7 +44,7 @@ export class MessageModel {
       let sql = 'SELECT MAX(ord) as max FROM messages WHERE chatId = ?'
       let args: Array<string | number> = [chatId]
       const orderRes = await db.execute({ sql, args })
-      const order = orderRes.rows as unknown as { max: number }
+      const order = orderRes.rows[0] as unknown as { max: number }
 
       const id = uuidv4()
       sql =
