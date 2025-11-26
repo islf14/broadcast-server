@@ -55,10 +55,11 @@ export async function createIo(httpServer: httpServer): Promise<Server> {
       duration: 20 // per 5 seconds
     })
 
-    socket.on('user:login', (name) => {
+    socket.on('user:login', (username) => {
       loginRateLimiter
         .consume(socket.handshake.address)
         .then(async () => {
+          const name = username.toLowerCase()
           try {
             // The name is created if it does not exist
             const id_user = await UserController.login({ name })

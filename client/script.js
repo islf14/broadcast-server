@@ -41,7 +41,7 @@ socket.on('server_everyone:message', (message) => {
     const span = document.createElement('span')
     const p = document.createElement('p')
     const small = document.createElement('small')
-    span.textContent = message.username
+    span.textContent = showUsername(message.username)
     p.textContent = message.message
     small.textContent = localeTime[0] + ':' + localeTime[1]
     li.classList.add('message')
@@ -72,7 +72,7 @@ socket.on('server_user:necessary_messages', (messages) => {
     const span = document.createElement('span')
     const p = document.createElement('p')
     const small = document.createElement('small')
-    span.textContent = message.username
+    span.textContent = showUsername(message.username)
     p.textContent = message.message
     small.textContent = localeTime[0] + ':' + localeTime[1]
     li.classList.add('message')
@@ -109,7 +109,7 @@ socket.on('server_user:active_users', (users) => {
       const li = document.createElement('li')
       const span = document.createElement('span')
       const button = document.createElement('button')
-      span.textContent = username
+      span.textContent = showUsername(username)
       button.textContent = 'Logout'
       button.classList.add('btn-logout')
       li.appendChild(span)
@@ -123,7 +123,7 @@ socket.on('server_user:active_users', (users) => {
       // Add other users
       const li = document.createElement('li')
       const span = document.createElement('span')
-      span.textContent = user.name
+      span.textContent = showUsername(user.name)
       li.appendChild(span)
       ulusers.insertAdjacentElement('beforeend', li)
     }
@@ -140,14 +140,14 @@ socket.on('server_other:user_connected', (user) => {
     const liUsers = document.querySelectorAll('#users ul li')
     let add = true
     liUsers.forEach((item) => {
-      if (item.children[0].textContent === user.name) {
+      if (item.children[0].textContent === showUsername(user.name)) {
         add = false
       }
     })
     if (add) {
       const li = document.createElement('li')
       const span = document.createElement('span')
-      span.textContent = user.name
+      span.textContent = showUsername(user.name)
       li.appendChild(span)
       ulusers.insertAdjacentElement('beforeend', li)
     }
@@ -163,7 +163,7 @@ socket.on('server_other:user_disconnected', (user) => {
     const ulusers = $('#users ul')
     const liUsers = document.querySelectorAll('#users ul li')
     liUsers.forEach((item) => {
-      if (item.children[0].textContent === user.name) {
+      if (item.children[0].textContent === showUsername(user.name)) {
         ulusers.removeChild(item)
       }
     })
@@ -193,7 +193,7 @@ socket.on('server_user:rate_error', (msg) => {
 //  L O G I N
 $('#formlogin').addEventListener('submit', (e) => {
   e.preventDefault()
-  const name = $('#name').value.trim()
+  const name = $('#name').value.trim().toLowerCase()
   $('#name').value = name
   if (name.length < 2 || name.length > 30) {
     e.target.children[1].innerText = 'invalid name'
@@ -219,6 +219,12 @@ $('#formchat').addEventListener('submit', (e) => {
     }
   }
 })
+
+// Capitalize the first letter
+function showUsername(name) {
+  if (!name) return ''
+  return name.charAt(0).toUpperCase() + name.slice(1)
+}
 
 // It is used in the logout button
 function logout() {
