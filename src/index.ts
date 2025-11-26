@@ -7,12 +7,14 @@ import { userRouter } from './routes/user.route.js'
 import { createIo } from './routes/io.route.js'
 import { ecors } from './middlewares/eCors.middleware.js'
 import { port } from './constants.js'
-import { csp } from './middlewares/csp.middleware.js'
+import helmet from 'helmet'
+// import { csp } from './middlewares/csp.middleware.js'
 
 const app = express()
 app.use(corsMiddleware())
 app.use(ecors())
-app.use(csp())
+// app.use(csp())
+app.use(helmet())
 app.use(json())
 app.use(express.static(join(process.cwd(), 'client')))
 
