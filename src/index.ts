@@ -17,10 +17,15 @@ app.use(json())
 app.use(express.static(join(process.cwd(), 'client')))
 
 const httpServer = createServer(app)
-await createIo(httpServer)
+createIo(httpServer)
+  .then(() => {
+    app.use('/', userRouter())
 
-app.use('/', userRouter())
-
-httpServer.listen(port, () => {
-  console.log(`Listening on port ${port}`)
-})
+    httpServer.listen(port, () => {
+      console.log(`Listening on port ${port}`)
+    })
+  })
+  .catch((err) => {
+    console.error('Failed to initialize io', err)
+    process.exit(1)
+  })
