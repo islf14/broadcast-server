@@ -1,6 +1,6 @@
 import Database from 'libsql'
 import { v4 as uuidv4 } from 'uuid'
-import { ChatDB, StatusChat, UpdChat } from '../types.js'
+import type { ChatDB, StatusChat, UpdChat } from '../types.js'
 
 function connectChats() {
   const db = new Database('./data.db')

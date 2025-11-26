@@ -1,6 +1,6 @@
 import { createClient } from '@libsql/client'
 import { v4 as uuidv4 } from 'uuid'
-import { Id, IdSt, Name, NaSt, ShowUser, UserDB } from '../../types.js'
+import type { Id, IdSt, Name, NaSt, ShowUser, UserDB } from '../../types.js'
 import { dbAuthToken, dbUrl } from '../../constants.js'
 
 async function connectUsers() {

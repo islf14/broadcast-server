@@ -1,6 +1,6 @@
 import Database from 'libsql'
 import { v4 as uuidv4 } from 'uuid'
-import { Id, IdSt, Name, NaSt, UserDB } from '../types.js'
+import type { Id, IdSt, Name, NaSt, UserDB } from '../types.js'
 
 function connectUsers() {
   const db = new Database('./data.db')

@@ -4,7 +4,7 @@ import { UserController } from '../controllers/user.controller.js'
 import { MessageController } from '../controllers/message.controller.js'
 import { ChatController } from '../controllers/chat.controller.js'
 import { RateLimiterMemory } from 'rate-limiter-flexible'
-import {
+import type {
   ClientToServerEvents,
   InterServerEvents,
   Name,

@@ -1,8 +1,8 @@
-import { Request, Response } from 'express'
+import type { Request, Response } from 'express'
 import { ChatController } from './chat.controller.js'
 // import { UserModel } from '../models/user.model.js'
 import { UserModel } from '../models/turso/user.model.js'
-import { Id, Name, UserDB } from '../types.js'
+import type { Id, Name, UserDB } from '../types.js'
 
 export class UserController {
   ////

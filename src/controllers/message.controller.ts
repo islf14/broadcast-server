@@ -1,6 +1,6 @@
 // import { MessageModel } from '../models/message.model.js'
 import { MessageModel } from '../models/turso/message.model.js'
-import { MessageDB, Messages, NewMessage } from '../types.js'
+import type { MessageDB, Messages, NewMessage } from '../types.js'
 
 export class MessageController {
   //

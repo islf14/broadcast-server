@@ -1,6 +1,6 @@
 import Database from 'libsql'
 import { v4 as uuidv4 } from 'uuid'
-import { Messages, MessageDB, NewMessage } from '../types.js'
+import type { Messages, MessageDB, NewMessage } from '../types.js'
 
 function connectMessages() {
   const db = new Database('./data.db')

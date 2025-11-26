@@ -1,4 +1,4 @@
-import { Request, Response, Router } from 'express'
+import { Router, type Request, type Response } from 'express'
 import { UserController } from '../controllers/user.controller.js'
 import { join } from 'node:path'
 import { rate } from '../middlewares/rate.middleware.js'

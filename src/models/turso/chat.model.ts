@@ -1,6 +1,6 @@
 import { createClient } from '@libsql/client'
 import { v4 as uuidv4 } from 'uuid'
-import { ChatDB, StatusChat, UpdChat } from '../../types.js'
+import type { ChatDB, StatusChat, UpdChat } from '../../types.js'
 import { dbAuthToken, dbUrl } from '../../constants.js'
 
 async function connectChats() {

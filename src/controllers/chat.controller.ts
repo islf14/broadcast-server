@@ -1,7 +1,7 @@
 import { UserController } from './user.controller.js'
 // import { ChatModel } from '../models/chat.model.js'
 import { ChatModel } from '../models/turso/chat.model.js'
-import { ChatDB } from '../types.js'
+import type { ChatDB } from '../types.js'
 
 export class ChatController {
   //

@@ -1,5 +1,5 @@
 import { rateLimit } from 'express-rate-limit'
-import { Rate } from '../types.js'
+import type { Rate } from '../types.js'
 
 export function rate({ times, minutes }: Rate) {
   const limiter = rateLimit({
