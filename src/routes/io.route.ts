@@ -47,7 +47,6 @@ export async function createIo(httpServer: httpServer): Promise<Server> {
 
   io.on('connection', (socket) => {
     //
-    console.log(socket.id)
     // Login
     // The user send a new name to join the chat
 
