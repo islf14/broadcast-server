@@ -239,7 +239,7 @@ function modelogin() {
   $('#users').style.display = 'none'
   $('#chat').style.display = 'none'
   $('#name').focus()
-  $('#floatlist').classList.add('hidden-menu')
+  $('#floatList').classList.add('hidden-menu')
   loggingIn(false)
   loginSpan('', 'green')
 }
@@ -257,14 +257,14 @@ function modechat() {
 // Button users
 $('#btnUsers').addEventListener('click', (e) => {
   e.preventDefault()
-  const classes = Object.values($('#floatlist').classList)
+  const classes = Object.values($('#floatList').classList)
   if (!classes.includes('hidden-menu')) {
     // shown
-    $('#floatlist').classList.add('hidden-menu')
+    $('#floatList').classList.add('hidden-menu')
     document.removeEventListener('mousedown', handleListener)
   } else {
     // hidden
-    $('#floatlist').classList.remove('hidden-menu')
+    $('#floatList').classList.remove('hidden-menu')
     // add listener to close the menu
     document.addEventListener('mousedown', handleListener)
   }
@@ -276,7 +276,7 @@ function handleListener(e) {
     !$('#listUsers').contains(e.target) &&
     !$('#btnUsers').contains(e.target)
   ) {
-    $('#floatlist').classList.add('hidden-menu')
+    $('#floatList').classList.add('hidden-menu')
     document.removeEventListener('mousedown', handleListener)
   }
 }
