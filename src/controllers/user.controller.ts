@@ -155,6 +155,7 @@ export class UserController {
 
   // Used in UserController - closeChat
   // Used in ChatController - newChat
+  // io - begin, user:vlogin
 
   static deleteAll = async (): Promise<void> => {
     await UserModel.deleteAll()

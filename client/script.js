@@ -174,9 +174,7 @@ socket.on('server_other:user_disconnected', (user) => {
 socket.on('server_user:login_error', (msg) => {
   localStorage.removeItem(u_bc)
   modelogin()
-  const sp = $('#formlogin span')
-  sp.innerText = msg
-  sp.style.color = 'red'
+  loginSpan(msg, 'red')
 })
 
 socket.on('server_user:rate_error', (msg) => {
@@ -190,17 +188,23 @@ socket.on('server_user:rate_error', (msg) => {
 
 // end of SOCKET
 
+let login = false // used in modechat
+
 //  L O G I N
 $('#formlogin').addEventListener('submit', (e) => {
   e.preventDefault()
   const name = $('#name').value.trim().toLowerCase()
   $('#name').value = name
   if (name.length < 2 || name.length > 30) {
-    e.target.children[1].innerText = 'invalid name'
-    e.target.children[1].style.color = 'red'
+    loginSpan('Invalid name', 'red')
     return
   }
-  e.target.children[1].innerText = ''
+  if (login) {
+    loginSpan('Logging in', 'green')
+    return
+  }
+  loggingIn(true)
+  loginSpan('', 'green')
   localStorage.setItem(u_bc, name)
   socket.emit('user:login', name)
 })
@@ -219,6 +223,19 @@ $('#formchat').addEventListener('submit', (e) => {
     }
   }
 })
+
+// Sendig login form to server
+function loggingIn(status) {
+  login = status
+  $('#formlogin button').disabled = status
+  $('#name').disabled = status
+}
+
+// Notify message in login error
+function loginSpan(msg, color) {
+  $('#formlogin span').innerText = msg
+  $('#formlogin span').style.color = color
+}
 
 // Capitalize the first letter
 function showUsername(name) {
@@ -244,6 +261,8 @@ function modelogin() {
   $('#chat').style.display = 'none'
   $('#name').focus()
   $('#floatlist').classList.add('hidden-menu')
+  loggingIn(false)
+  loginSpan('', 'green')
 }
 
 function modechat() {
@@ -252,6 +271,8 @@ function modechat() {
   $('#users').style.display = 'block'
   $('#chat').style.display = 'block'
   $('#newmessage').focus()
+  loggingIn(false)
+  loginSpan('', 'green')
 }
 
 // Button users

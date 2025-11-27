@@ -116,6 +116,7 @@ export async function createIo(httpServer: httpServer): Promise<Server> {
           socket.emit('server_user:login_error', 'Error, login again.')
         }
       } else {
+        await UserController.deleteAll()
         socket.handshake.auth.username = null
         socket.emit('server_user:login_error', 'No chat, login again.')
       }
