@@ -2,6 +2,7 @@
   "name": "chat-server",
   "version": "1.0.0",
   "main": "./dist/index.js",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "build-w": "tsc --watch",
