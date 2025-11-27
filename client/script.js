@@ -34,30 +34,7 @@ socket.on('server_everyone:message', (message) => {
     localStorage.getItem(u_bc) !== null &&
     localStorage.getItem(u_bc) === socket.auth.username
   ) {
-    const date = new Date(message.date)
-    const localeTime = date.toLocaleTimeString('en-GB').split(':')
-    const ulchat = $('#chat ul')
-    const li = document.createElement('li')
-    const span = document.createElement('span')
-    const p = document.createElement('p')
-    const small = document.createElement('small')
-    span.textContent = showUsername(message.username)
-    p.textContent = message.message
-    small.textContent = localeTime[0] + ':' + localeTime[1]
-    li.classList.add('message')
-    if (message.username === socket.auth.username) {
-      li.classList.add('out')
-    } else {
-      li.classList.add('in')
-    }
-    li.appendChild(span)
-    li.appendChild(p)
-    li.appendChild(small)
-    ulchat.insertAdjacentElement('beforeend', li)
-    ulchat.scrollTop = ulchat.scrollHeight
-    if (message.ord > socket.auth.countMessages) {
-      socket.auth.countMessages = message.ord
-    }
+    showMessage(message)
   }
 })
 
@@ -65,33 +42,37 @@ socket.on('server_everyone:message', (message) => {
 // in the current chat
 socket.on('server_user:necessary_messages', (messages) => {
   messages.forEach((message) => {
-    const date = new Date(message.date)
-    const localeTime = date.toLocaleTimeString('en-GB').split(':')
-    const ulchat = $('#chat ul')
-    const li = document.createElement('li')
-    const span = document.createElement('span')
-    const p = document.createElement('p')
-    const small = document.createElement('small')
-    span.textContent = showUsername(message.username)
-    p.textContent = message.message
-    small.textContent = localeTime[0] + ':' + localeTime[1]
-    li.classList.add('message')
-    if (message.username === socket.auth.username) {
-      li.classList.add('out')
-    } else {
-      li.classList.add('in')
-    }
-    li.appendChild(span)
-    li.appendChild(p)
-    li.appendChild(small)
-    // don't clean messages, only add
-    ulchat.insertAdjacentElement('beforeend', li)
-    ulchat.scrollTop = ulchat.scrollHeight
-    if (message.ord > socket.auth.countMessages) {
-      socket.auth.countMessages = message.ord
-    }
+    showMessage(message)
   })
 })
+
+// Show message in the list
+function showMessage(message) {
+  const date = new Date(message.date)
+  const localeTime = date.toLocaleTimeString('en-GB').split(':')
+  const ulchat = $('#chat ul')
+  const li = document.createElement('li')
+  const span = document.createElement('span')
+  const p = document.createElement('p')
+  const small = document.createElement('small')
+  span.textContent = showUsername(message.username)
+  p.textContent = message.message
+  small.textContent = localeTime[0] + ':' + localeTime[1]
+  li.classList.add('message')
+  if (message.username === socket.auth.username) {
+    li.classList.add('out')
+  } else {
+    li.classList.add('in')
+  }
+  li.appendChild(span)
+  li.appendChild(p)
+  li.appendChild(small)
+  ulchat.insertAdjacentElement('beforeend', li)
+  ulchat.scrollTop = ulchat.scrollHeight
+  if (message.ord > socket.auth.countMessages) {
+    socket.auth.countMessages = message.ord
+  }
+}
 
 // The user receives the active users
 socket.on('server_user:active_users', (users) => {
@@ -120,12 +101,7 @@ socket.on('server_user:active_users', (users) => {
         logout()
       })
     } else {
-      // Add other users
-      const li = document.createElement('li')
-      const span = document.createElement('span')
-      span.textContent = showUsername(user.name)
-      li.appendChild(span)
-      ulusers.insertAdjacentElement('beforeend', li)
+      addUser(user) // Add other users
     }
   })
 })
@@ -136,7 +112,6 @@ socket.on('server_other:user_connected', (user) => {
     localStorage.getItem(u_bc) !== null &&
     localStorage.getItem(u_bc) === socket.auth.username
   ) {
-    const ulusers = $('#users ul')
     const liUsers = document.querySelectorAll('#users ul li')
     let add = true
     liUsers.forEach((item) => {
@@ -145,14 +120,19 @@ socket.on('server_other:user_connected', (user) => {
       }
     })
     if (add) {
-      const li = document.createElement('li')
-      const span = document.createElement('span')
-      span.textContent = showUsername(user.name)
-      li.appendChild(span)
-      ulusers.insertAdjacentElement('beforeend', li)
+      addUser(user)
     }
   }
 })
+
+// Add other users
+function addUser(user) {
+  const li = document.createElement('li')
+  const span = document.createElement('span')
+  span.textContent = showUsername(user.name)
+  li.appendChild(span)
+  $('#users ul').insertAdjacentElement('beforeend', li)
+}
 
 // Receive a disconnection notification from another user
 socket.on('server_other:user_disconnected', (user) => {
@@ -160,11 +140,10 @@ socket.on('server_other:user_disconnected', (user) => {
     localStorage.getItem(u_bc) !== null &&
     localStorage.getItem(u_bc) === socket.auth.username
   ) {
-    const ulusers = $('#users ul')
     const liUsers = document.querySelectorAll('#users ul li')
     liUsers.forEach((item) => {
       if (item.children[0].textContent === showUsername(user.name)) {
-        ulusers.removeChild(item)
+        $('#users ul').removeChild(item)
       }
     })
   }
@@ -188,7 +167,7 @@ socket.on('server_user:rate_error', (msg) => {
 
 // end of SOCKET
 
-let login = false // used in modechat
+let login = false // used in loggingIn
 
 //  L O G I N
 $('#formlogin').addEventListener('submit', (e) => {
